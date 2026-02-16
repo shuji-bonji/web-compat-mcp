@@ -8,8 +8,11 @@ import { resolve } from "node:path";
 
 const SERVER_PATH = resolve(import.meta.dirname, "../../dist/index.js");
 
-/** Per-request timeout (CI can be slow loading large BCD JSON) */
+/** Per-request timeout (CI can be slow on first tool call due to lazy index init) */
 const REQUEST_TIMEOUT_MS = 30_000;
+
+/** Max time to wait for server to start (BCD JSON ~80MB parse can be slow on CI) */
+const SERVER_READY_TIMEOUT_MS = 60_000;
 
 /** Send a JSON-RPC request and collect all JSON responses */
 function createClient() {
@@ -18,29 +21,64 @@ function createClient() {
   const responses: Map<number, (value: unknown) => void> = new Map();
 
   return {
-    start() {
-      proc = spawn("node", [SERVER_PATH], {
-        stdio: ["pipe", "pipe", "pipe"],
-      });
+    /**
+     * Start the server process and wait for it to be ready.
+     * The server emits "web-compat-mcp server running via stdio" on stderr when ready.
+     */
+    start(): Promise<void> {
+      return new Promise((resolve, reject) => {
+        proc = spawn("node", [SERVER_PATH], {
+          stdio: ["pipe", "pipe", "pipe"],
+        });
 
-      proc.stdout!.on("data", (data: Buffer) => {
-        buffer += data.toString();
-        // Parse newline-delimited JSON
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          try {
-            const msg = JSON.parse(trimmed);
-            if (msg.id !== undefined && responses.has(msg.id)) {
-              responses.get(msg.id)!(msg);
-              responses.delete(msg.id);
-            }
-          } catch {
-            // not valid JSON, skip
+        let stderrBuf = "";
+        const timeoutId = setTimeout(() => {
+          reject(
+            new Error(
+              `Server did not become ready within ${SERVER_READY_TIMEOUT_MS}ms. stderr: ${stderrBuf}`
+            )
+          );
+        }, SERVER_READY_TIMEOUT_MS);
+
+        proc.stderr!.on("data", (data: Buffer) => {
+          stderrBuf += data.toString();
+          if (stderrBuf.includes("web-compat-mcp server running")) {
+            clearTimeout(timeoutId);
+            resolve();
           }
-        }
+        });
+
+        proc.on("error", (err) => {
+          clearTimeout(timeoutId);
+          reject(err);
+        });
+
+        proc.on("exit", (code) => {
+          if (code !== null && code !== 0) {
+            clearTimeout(timeoutId);
+            reject(new Error(`Server exited with code ${code}. stderr: ${stderrBuf}`));
+          }
+        });
+
+        proc.stdout!.on("data", (data: Buffer) => {
+          buffer += data.toString();
+          // Parse newline-delimited JSON
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            try {
+              const msg = JSON.parse(trimmed);
+              if (msg.id !== undefined && responses.has(msg.id)) {
+                responses.get(msg.id)!(msg);
+                responses.delete(msg.id);
+              }
+            } catch {
+              // not valid JSON, skip
+            }
+          }
+        });
       });
     },
 
@@ -69,9 +107,11 @@ describe("MCP Server E2E", () => {
 
   beforeAll(async () => {
     client = createClient();
-    client.start();
 
-    // Initialize
+    // Wait for server to finish loading BCD data and become ready
+    await client.start();
+
+    // Initialize MCP session
     const initResult = await client.send(0, "initialize", {
       protocolVersion: "2024-11-05",
       capabilities: {},
