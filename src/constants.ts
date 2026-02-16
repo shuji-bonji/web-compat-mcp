@@ -46,9 +46,4 @@ export const BASELINE_BROWSERS = [
 ] as const;
 
 /** Desktop browsers for simplified display */
-export const DESKTOP_BROWSERS = [
-  "chrome",
-  "edge",
-  "firefox",
-  "safari",
-] as const;
+export const DESKTOP_BROWSERS = ["chrome", "edge", "firefox", "safari"] as const;

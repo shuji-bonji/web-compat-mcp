@@ -14,11 +14,10 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-
-import { registerCompatTools } from "./tools/compat.js";
-import { registerSearchTools } from "./tools/search.js";
 import { registerBaselineTools } from "./tools/baseline.js";
 import { registerBrowserTools } from "./tools/browsers.js";
+import { registerCompatTools } from "./tools/compat.js";
+import { registerSearchTools } from "./tools/search.js";
 
 // Create MCP server instance
 const server = new McpServer({

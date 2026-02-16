@@ -20,17 +20,11 @@ export function featureNotFoundError(featureId: string): string {
   }
 
   if (featureId.includes("-")) {
-    const camelCase = featureId.replace(/-([a-z])/g, (_, c: string) =>
-      c.toUpperCase()
-    );
-    suggestions.push(
-      `BCD uses camelCase for some APIs. Try: "${camelCase}"`
-    );
+    const camelCase = featureId.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
+    suggestions.push(`BCD uses camelCase for some APIs. Try: "${camelCase}"`);
   }
 
-  suggestions.push(
-    `Use the compat_search tool to find the correct identifier.`
-  );
+  suggestions.push(`Use the compat_search tool to find the correct identifier.`);
 
   return [
     `Error: Feature "${featureId}" not found in BCD.`,

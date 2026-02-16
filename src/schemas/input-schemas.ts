@@ -3,15 +3,13 @@
  */
 
 import { z } from "zod";
-import { BCD_CATEGORIES, ResponseFormat, DEFAULT_LIMIT, MAX_LIMIT } from "../constants.js";
+import { BCD_CATEGORIES, DEFAULT_LIMIT, MAX_LIMIT, ResponseFormat } from "../constants.js";
 
 /** Response format schema (shared) */
 const responseFormatSchema = z
   .nativeEnum(ResponseFormat)
   .default(ResponseFormat.MARKDOWN)
-  .describe(
-    "Output format: 'markdown' for human-readable or 'json' for structured data"
-  );
+  .describe("Output format: 'markdown' for human-readable or 'json' for structured data");
 
 /** Pagination schemas (shared) */
 const limitSchema = z
@@ -67,9 +65,7 @@ export const CompatSearchInputSchema = z
     category: z
       .enum(BCD_CATEGORIES)
       .optional()
-      .describe(
-        'Filter by BCD category (e.g., "api", "css", "html", "javascript")'
-      ),
+      .describe('Filter by BCD category (e.g., "api", "css", "html", "javascript")'),
     limit: limitSchema,
     offset: offsetSchema,
     response_format: responseFormatSchema,
@@ -93,9 +89,7 @@ export const CompatGetBaselineInputSchema = z
   })
   .strict();
 
-export type CompatGetBaselineInput = z.infer<
-  typeof CompatGetBaselineInputSchema
->;
+export type CompatGetBaselineInput = z.infer<typeof CompatGetBaselineInputSchema>;
 
 /**
  * compat_list_baseline — List features filtered by Baseline status
@@ -111,18 +105,14 @@ export const CompatListBaselineInputSchema = z
     group: z
       .string()
       .optional()
-      .describe(
-        'Filter by web-features group (e.g., "css", "javascript", "forms")'
-      ),
+      .describe('Filter by web-features group (e.g., "css", "javascript", "forms")'),
     limit: limitSchema,
     offset: offsetSchema,
     response_format: responseFormatSchema,
   })
   .strict();
 
-export type CompatListBaselineInput = z.infer<
-  typeof CompatListBaselineInputSchema
->;
+export type CompatListBaselineInput = z.infer<typeof CompatListBaselineInputSchema>;
 
 /**
  * compat_compare — Compare browser compatibility across multiple features
@@ -157,9 +147,7 @@ export const CompatListBrowsersInputSchema = z
   })
   .strict();
 
-export type CompatListBrowsersInput = z.infer<
-  typeof CompatListBrowsersInputSchema
->;
+export type CompatListBrowsersInput = z.infer<typeof CompatListBrowsersInputSchema>;
 
 /**
  * compat_check_support — Find features supported in a specific browser version
@@ -169,9 +157,7 @@ export const CompatCheckSupportInputSchema = z
     browser: z
       .string()
       .min(1, "Browser name is required")
-      .describe(
-        'Browser identifier (e.g., "safari", "chrome", "firefox")'
-      ),
+      .describe('Browser identifier (e.g., "safari", "chrome", "firefox")'),
     version: z
       .string()
       .min(1, "Version is required")
@@ -186,6 +172,4 @@ export const CompatCheckSupportInputSchema = z
   })
   .strict();
 
-export type CompatCheckSupportInput = z.infer<
-  typeof CompatCheckSupportInputSchema
->;
+export type CompatCheckSupportInput = z.infer<typeof CompatCheckSupportInputSchema>;

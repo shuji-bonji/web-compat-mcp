@@ -2,24 +2,21 @@
  * Browser tools — compat_list_browsers, compat_check_support
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import {
-  CompatListBrowsersInputSchema,
-  CompatCheckSupportInputSchema,
-  type CompatListBrowsersInput,
-  type CompatCheckSupportInput,
-} from "../schemas/input-schemas.js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ResponseFormat } from "../constants.js";
 import {
-  getBrowsers,
-  findFeaturesByBrowserVersion,
-} from "../services/bcd-service.js";
+  type CompatCheckSupportInput,
+  CompatCheckSupportInputSchema,
+  type CompatListBrowsersInput,
+  CompatListBrowsersInputSchema,
+} from "../schemas/input-schemas.js";
+import { findFeaturesByBrowserVersion, getBrowsers } from "../services/bcd-service.js";
+import { handleError } from "../utils/error-handler.js";
 import {
   formatBrowsersMarkdown,
   formatCheckSupportMarkdown,
   truncateIfNeeded,
 } from "../utils/formatter.js";
-import { handleError } from "../utils/error-handler.js";
 
 export function registerBrowserTools(server: McpServer): void {
   // compat_list_browsers — List tracked browsers
@@ -135,9 +132,7 @@ Examples:
             offset: params.offset,
             features: results.features,
             has_more: results.has_more,
-            ...(results.has_more
-              ? { next_offset: params.offset + results.features.length }
-              : {}),
+            ...(results.has_more ? { next_offset: params.offset + results.features.length } : {}),
           };
           const text = JSON.stringify(output, null, 2);
           return {
@@ -146,11 +141,7 @@ Examples:
           };
         }
 
-        const markdown = formatCheckSupportMarkdown(
-          params.browser,
-          params.version,
-          results
-        );
+        const markdown = formatCheckSupportMarkdown(params.browser, params.version, results);
         return {
           content: [{ type: "text" as const, text: truncateIfNeeded(markdown) }],
         };

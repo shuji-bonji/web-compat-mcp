@@ -2,23 +2,23 @@
  * BCD Compatibility tools — compat_check, compat_compare
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import {
-  CompatCheckInputSchema,
-  CompatCompareInputSchema,
-  type CompatCheckInput,
-  type CompatCompareInput,
-} from "../schemas/input-schemas.js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ResponseFormat } from "../constants.js";
+import {
+  type CompatCheckInput,
+  CompatCheckInputSchema,
+  type CompatCompareInput,
+  CompatCompareInputSchema,
+} from "../schemas/input-schemas.js";
 import { getFeatureCompat } from "../services/bcd-service.js";
 import { findWebFeatureByBcdId, getBaselineStatus } from "../services/features-service.js";
+import type { FeatureCompatResult } from "../types.js";
+import { featureNotFoundError, handleError } from "../utils/error-handler.js";
 import {
-  formatCompatCheckMarkdown,
   formatCompareMarkdown,
+  formatCompatCheckMarkdown,
   truncateIfNeeded,
 } from "../utils/formatter.js";
-import { featureNotFoundError, handleError } from "../utils/error-handler.js";
-import type { FeatureCompatResult } from "../types.js";
 
 export function registerCompatTools(server: McpServer): void {
   server.registerTool(

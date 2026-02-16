@@ -2,24 +2,21 @@
  * Baseline tools — compat_get_baseline, compat_list_baseline
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import {
-  CompatGetBaselineInputSchema,
-  CompatListBaselineInputSchema,
-  type CompatGetBaselineInput,
-  type CompatListBaselineInput,
-} from "../schemas/input-schemas.js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ResponseFormat } from "../constants.js";
 import {
-  getBaselineStatus,
-  listByBaseline,
-} from "../services/features-service.js";
+  type CompatGetBaselineInput,
+  CompatGetBaselineInputSchema,
+  type CompatListBaselineInput,
+  CompatListBaselineInputSchema,
+} from "../schemas/input-schemas.js";
+import { getBaselineStatus, listByBaseline } from "../services/features-service.js";
+import { handleError, webFeatureNotFoundError } from "../utils/error-handler.js";
 import {
-  formatBaselineMarkdown,
   formatBaselineListMarkdown,
+  formatBaselineMarkdown,
   truncateIfNeeded,
 } from "../utils/formatter.js";
-import { webFeatureNotFoundError, handleError } from "../utils/error-handler.js";
 
 export function registerBaselineTools(server: McpServer): void {
   server.registerTool(
@@ -58,9 +55,7 @@ Examples:
 
         if (!result) {
           return {
-            content: [
-              { type: "text" as const, text: webFeatureNotFoundError(params.feature) },
-            ],
+            content: [{ type: "text" as const, text: webFeatureNotFoundError(params.feature) }],
           };
         }
 
@@ -118,16 +113,9 @@ Examples:
       try {
         // Convert "false" string to boolean false
         const statusFilter =
-          params.status === "false"
-            ? false
-            : (params.status as "high" | "low" | undefined);
+          params.status === "false" ? false : (params.status as "high" | "low" | undefined);
 
-        const results = listByBaseline(
-          statusFilter,
-          params.group,
-          params.limit,
-          params.offset
-        );
+        const results = listByBaseline(statusFilter, params.group, params.limit, params.offset);
 
         if (results.total === 0) {
           return {
@@ -147,9 +135,7 @@ Examples:
             offset: params.offset,
             features: results.features,
             has_more: results.has_more,
-            ...(results.has_more
-              ? { next_offset: params.offset + results.features.length }
-              : {}),
+            ...(results.has_more ? { next_offset: params.offset + results.features.length } : {}),
           };
           const text = JSON.stringify(output, null, 2);
           return {

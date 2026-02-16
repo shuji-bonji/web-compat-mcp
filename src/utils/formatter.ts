@@ -4,10 +4,10 @@
 
 import { CHARACTER_LIMIT } from "../constants.js";
 import type {
-  FeatureCompatResult,
-  SearchResultItem,
   BaselineFeatureResult,
   BrowserInfo,
+  FeatureCompatResult,
+  SearchResultItem,
 } from "../types.js";
 
 /** Baseline status emoji */
@@ -23,21 +23,16 @@ function baselineEmoji(status: "high" | "low" | false): string {
 }
 
 /** Format version string for display */
-function formatVersion(
-  versionAdded: string | boolean | null | undefined
-): string {
+function formatVersion(versionAdded: string | boolean | null | undefined): string {
   if (versionAdded === true) return "Yes";
-  if (versionAdded === false || versionAdded === null || versionAdded === undefined)
-    return "❌ No";
+  if (versionAdded === false || versionAdded === null || versionAdded === undefined) return "❌ No";
   return `${versionAdded}+`;
 }
 
 /**
  * Format compat_check result as Markdown
  */
-export function formatCompatCheckMarkdown(
-  result: FeatureCompatResult
-): string {
+export function formatCompatCheckMarkdown(result: FeatureCompatResult): string {
   const lines: string[] = [];
 
   lines.push(`# ${result.id}`);
@@ -74,11 +69,8 @@ export function formatCompatCheckMarkdown(
     if (data.partial_implementation) notes.push("Partial");
     if (data.flags) notes.push("Flag required");
     if (data.prefix) notes.push(`Prefix: ${data.prefix}`);
-    if (data.version_removed)
-      notes.push(`Removed in ${data.version_removed}`);
-    lines.push(
-      `| ${browserId} | ${version} | ${notes.join(", ")} |`
-    );
+    if (data.version_removed) notes.push(`Removed in ${data.version_removed}`);
+    lines.push(`| ${browserId} | ${version} | ${notes.join(", ")} |`);
   }
   lines.push("");
 
@@ -87,9 +79,7 @@ export function formatCompatCheckMarkdown(
     lines.push(`📖 [MDN](${result.mdn_url})`);
   }
   if (result.spec_url) {
-    const specUrl = Array.isArray(result.spec_url)
-      ? result.spec_url[0]
-      : result.spec_url;
+    const specUrl = Array.isArray(result.spec_url) ? result.spec_url[0] : result.spec_url;
     lines.push(`📋 [Spec](${specUrl})`);
   }
 
@@ -134,9 +124,7 @@ export function formatSearchMarkdown(
 /**
  * Format baseline result as Markdown
  */
-export function formatBaselineMarkdown(
-  result: BaselineFeatureResult
-): string {
+export function formatBaselineMarkdown(result: BaselineFeatureResult): string {
   const lines: string[] = [];
 
   lines.push(`# ${result.name}`);
@@ -174,9 +162,7 @@ export function formatBaselineMarkdown(
       lines.push(`- \`${f}\``);
     }
     if (result.compat_features.length > maxShow) {
-      lines.push(
-        `- ... and ${result.compat_features.length - maxShow} more`
-      );
+      lines.push(`- ... and ${result.compat_features.length - maxShow} more`);
     }
     lines.push("");
   }
@@ -198,14 +184,10 @@ export function formatBaselineListMarkdown(
 ): string {
   const lines: string[] = [];
 
-  const title = statusFilter
-    ? `Baseline Features (${statusFilter})`
-    : "Baseline Features";
+  const title = statusFilter ? `Baseline Features (${statusFilter})` : "Baseline Features";
   lines.push(`# ${title}`);
   lines.push("");
-  lines.push(
-    `Found **${results.total}** features (showing ${results.features.length})`
-  );
+  lines.push(`Found **${results.total}** features (showing ${results.features.length})`);
   lines.push("");
 
   lines.push("| Feature | Baseline | Since |");
@@ -233,19 +215,14 @@ export function formatBaselineListMarkdown(
 /**
  * Format compat_compare result as Markdown
  */
-export function formatCompareMarkdown(
-  results: FeatureCompatResult[],
-  notFound: string[]
-): string {
+export function formatCompareMarkdown(results: FeatureCompatResult[], notFound: string[]): string {
   const lines: string[] = [];
 
   lines.push("# Feature Comparison");
   lines.push("");
 
   if (notFound.length > 0) {
-    lines.push(
-      `> ⚠️ Not found: ${notFound.map((f) => `\`${f}\``).join(", ")}`
-    );
+    lines.push(`> ⚠️ Not found: ${notFound.map((f) => `\`${f}\``).join(", ")}`);
     lines.push("");
   }
 
@@ -260,10 +237,8 @@ export function formatCompareMarkdown(
   const browsers = [...allBrowsers].sort();
 
   // Build comparison table
-  const header = ["| Browser", ...results.map((r) => `| \`${r.id}\``)].join(
-    " "
-  ) + " |";
-  const separator = ["|---", ...results.map(() => "|---")].join("") + "|";
+  const header = `${["| Browser", ...results.map((r) => `| \`${r.id}\``)].join(" ")} |`;
+  const separator = `${["|---", ...results.map(() => "|---")].join("")}|`;
 
   lines.push(header);
   lines.push(separator);
@@ -276,7 +251,7 @@ export function formatCompareMarkdown(
       const extras: string[] = [];
       if (data.flags) extras.push("🚩");
       if (data.partial_implementation) extras.push("⚠️");
-      return `| ${version}${extras.length > 0 ? " " + extras.join("") : ""} `;
+      return `| ${version}${extras.length > 0 ? ` ${extras.join("")}` : ""} `;
     });
     lines.push(`| ${browserId} ${cells.join("")}|`);
   }
@@ -288,9 +263,7 @@ export function formatCompareMarkdown(
     lines.push("## Baseline Status");
     lines.push("");
     for (const r of results) {
-      const bl = r.baseline
-        ? baselineEmoji(r.baseline.status)
-        : "No data";
+      const bl = r.baseline ? baselineEmoji(r.baseline.status) : "No data";
       lines.push(`- \`${r.id}\`: ${bl}`);
     }
     lines.push("");
@@ -325,9 +298,7 @@ export function formatBrowsersMarkdown(browsers: BrowserInfo[]): string {
     lines.push("|----|------|-----------------|--------------|");
     for (const b of list) {
       lines.push(
-        `| ${b.id} | ${b.name} | ${b.current_version ?? "—"} | ${
-          b.release_date ?? "—"
-        } |`
+        `| ${b.id} | ${b.name} | ${b.current_version ?? "—"} | ${b.release_date ?? "—"} |`
       );
     }
     lines.push("");
@@ -352,9 +323,7 @@ export function formatCheckSupportMarkdown(
 
   lines.push(`# Features added in ${browser} ${version}`);
   lines.push("");
-  lines.push(
-    `Found **${results.total}** features (showing ${results.features.length})`
-  );
+  lines.push(`Found **${results.total}** features (showing ${results.features.length})`);
   lines.push("");
 
   lines.push("| Feature ID |");

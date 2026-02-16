@@ -6,7 +6,7 @@
  * All data is local (npm package) — no network requests.
  */
 
-import { features, groups, browsers } from "web-features";
+import { features, groups } from "web-features";
 import type { BaselineFeatureResult } from "../types.js";
 
 /** web-features feature type */
@@ -29,9 +29,7 @@ interface WebFeature {
 /**
  * Get Baseline status for a specific web feature
  */
-export function getBaselineStatus(
-  featureId: string
-): BaselineFeatureResult | null {
+export function getBaselineStatus(featureId: string): BaselineFeatureResult | null {
   const feature = (features as Record<string, WebFeature>)[featureId];
   if (!feature) return null;
 
@@ -67,9 +65,7 @@ export function listByBaseline(
   features: BaselineFeatureResult[];
   has_more: boolean;
 } {
-  const allFeatures = Object.entries(
-    features as Record<string, WebFeature>
-  );
+  const allFeatures = Object.entries(features as Record<string, WebFeature>);
 
   const filtered = allFeatures.filter(([_id, feature]) => {
     // Filter by baseline status
@@ -128,9 +124,7 @@ export function searchWebFeatures(
   has_more: boolean;
 } {
   const lowerQuery = query.toLowerCase();
-  const allFeatures = Object.entries(
-    features as Record<string, WebFeature>
-  );
+  const allFeatures = Object.entries(features as Record<string, WebFeature>);
 
   const filtered = allFeatures.filter(
     ([id, feature]) =>
@@ -172,9 +166,7 @@ export function searchWebFeatures(
  * Find web-features ID from a BCD feature ID (via compat_features mapping)
  */
 export function findWebFeatureByBcdId(bcdId: string): string | null {
-  for (const [id, feature] of Object.entries(
-    features as Record<string, WebFeature>
-  )) {
+  for (const [id, feature] of Object.entries(features as Record<string, WebFeature>)) {
     if (feature.compat_features?.includes(bcdId)) {
       return id;
     }
@@ -186,10 +178,8 @@ export function findWebFeatureByBcdId(bcdId: string): string | null {
  * Get available groups
  */
 export function getGroups(): Array<{ id: string; name: string }> {
-  return Object.entries(groups as Record<string, { name: string }>).map(
-    ([id, group]) => ({
-      id,
-      name: group.name,
-    })
-  );
+  return Object.entries(groups as Record<string, { name: string }>).map(([id, group]) => ({
+    id,
+    name: group.name,
+  }));
 }

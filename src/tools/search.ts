@@ -2,15 +2,12 @@
  * Search tools — compat_search
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import {
-  CompatSearchInputSchema,
-  type CompatSearchInput,
-} from "../schemas/input-schemas.js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ResponseFormat } from "../constants.js";
+import { type CompatSearchInput, CompatSearchInputSchema } from "../schemas/input-schemas.js";
 import { searchFeatures } from "../services/bcd-service.js";
-import { formatSearchMarkdown, truncateIfNeeded } from "../utils/formatter.js";
 import { handleError } from "../utils/error-handler.js";
+import { formatSearchMarkdown, truncateIfNeeded } from "../utils/formatter.js";
 
 export function registerSearchTools(server: McpServer): void {
   server.registerTool(
@@ -45,12 +42,7 @@ Examples:
     },
     async (params: CompatSearchInput) => {
       try {
-        const results = searchFeatures(
-          params.query,
-          params.category,
-          params.limit,
-          params.offset
-        );
+        const results = searchFeatures(params.query, params.category, params.limit, params.offset);
 
         if (results.total === 0) {
           const suggestions = [
@@ -75,9 +67,7 @@ Examples:
             offset: params.offset,
             features: results.features,
             has_more: results.has_more,
-            ...(results.has_more
-              ? { next_offset: params.offset + results.features.length }
-              : {}),
+            ...(results.has_more ? { next_offset: params.offset + results.features.length } : {}),
           };
           const text = JSON.stringify(output, null, 2);
           return {

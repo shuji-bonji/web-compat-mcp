@@ -10,12 +10,20 @@ import { BCD_CATEGORIES, DESKTOP_BROWSERS } from "../constants.js";
 import type {
   BcdCompatData,
   BcdSupportStatement,
+  BrowserInfo,
   FeatureCompatResult,
   SearchResultItem,
-  BrowserInfo,
 } from "../types.js";
 
 type BcdCategory = (typeof BCD_CATEGORIES)[number];
+
+/** Recursive BCD tree node type — avoids `any` */
+type BcdNode = Record<string, unknown>;
+
+/** Type guard: check if value is a traversable BCD node */
+function isBcdNode(value: unknown): value is BcdNode {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
 
 /**
  * Navigate the BCD tree by dot-separated path
@@ -23,15 +31,14 @@ type BcdCategory = (typeof BCD_CATEGORIES)[number];
  */
 function getFeatureByPath(path: string): { __compat?: BcdCompatData } | null {
   const parts = path.split(".");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let current: any = bcd;
+  let current: unknown = bcd;
 
   for (const part of parts) {
-    if (current === undefined || current === null) return null;
+    if (!isBcdNode(current)) return null;
     current = current[part];
   }
 
-  return current ?? null;
+  return isBcdNode(current) ? (current as { __compat?: BcdCompatData }) : null;
 }
 
 /**
@@ -83,9 +90,7 @@ export function getFeatureCompat(
         flags: stmt.flags ? true : undefined,
         partial_implementation: stmt.partial_implementation,
         prefix: stmt.prefix,
-        notes: Array.isArray(stmt.notes)
-          ? stmt.notes.join("; ")
-          : stmt.notes,
+        notes: Array.isArray(stmt.notes) ? stmt.notes.join("; ") : stmt.notes,
       };
     }
   }
@@ -94,9 +99,7 @@ export function getFeatureCompat(
 
   return {
     id: featureId,
-    description: compat.mdn_url
-      ? `See MDN: ${compat.mdn_url}`
-      : undefined,
+    description: compat.mdn_url ? `See MDN: ${compat.mdn_url}` : undefined,
     mdn_url: compat.mdn_url,
     spec_url: compat.spec_url,
     status: compat.status,
@@ -109,21 +112,19 @@ export function getFeatureCompat(
  * Recursively collect all feature paths under a BCD category
  */
 function collectFeaturePaths(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  node: any,
+  node: BcdNode,
   prefix: string,
   results: string[],
   maxDepth: number = 4,
   currentDepth: number = 0
 ): void {
   if (currentDepth > maxDepth) return;
-  if (!node || typeof node !== "object") return;
 
   for (const key of Object.keys(node)) {
     if (key === "__compat" || key === "__meta") continue;
     const child = node[key];
-    if (child && typeof child === "object") {
-      if (child.__compat) {
+    if (isBcdNode(child)) {
+      if ("__compat" in child) {
         results.push(`${prefix}.${key}`);
       }
       // Always recurse into sub-features (intermediate nodes like css.properties may lack __compat)
@@ -142,23 +143,18 @@ export function searchFeatures(
   offset: number = 0
 ): { total: number; features: SearchResultItem[]; has_more: boolean } {
   const lowerQuery = query.toLowerCase();
-  const categories = category
-    ? [category as BcdCategory]
-    : [...BCD_CATEGORIES];
+  const categories = category ? [category as BcdCategory] : [...BCD_CATEGORIES];
 
   const allPaths: string[] = [];
 
   for (const cat of categories) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const catData = (bcd as any)[cat];
-    if (!catData) continue;
+    const catData = (bcd as unknown as BcdNode)[cat];
+    if (!isBcdNode(catData)) continue;
     collectFeaturePaths(catData, cat, allPaths);
   }
 
   // Filter by query (match against path)
-  const matches = allPaths.filter((path) =>
-    path.toLowerCase().includes(lowerQuery)
-  );
+  const matches = allPaths.filter((path) => path.toLowerCase().includes(lowerQuery));
 
   const total = matches.length;
   const sliced = matches.slice(offset, offset + limit);
@@ -168,9 +164,7 @@ export function searchFeatures(
     const compat = node?.__compat;
     return {
       id,
-      description: compat?.mdn_url
-        ? `MDN: ${compat.mdn_url}`
-        : undefined,
+      description: compat?.mdn_url ? `MDN: ${compat.mdn_url}` : undefined,
       deprecated: compat?.status?.deprecated ?? false,
       experimental: compat?.status?.experimental ?? false,
       standard_track: compat?.status?.standard_track ?? false,
@@ -239,15 +233,12 @@ export function findFeaturesByBrowserVersion(
   features: Array<{ id: string; version_added: string }>;
   has_more: boolean;
 } {
-  const categories = category
-    ? [category as BcdCategory]
-    : [...BCD_CATEGORIES];
+  const categories = category ? [category as BcdCategory] : [...BCD_CATEGORIES];
 
   const allPaths: string[] = [];
   for (const cat of categories) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const catData = (bcd as any)[cat];
-    if (!catData) continue;
+    const catData = (bcd as unknown as BcdNode)[cat];
+    if (!isBcdNode(catData)) continue;
     collectFeaturePaths(catData, cat, allPaths, 4);
   }
 
@@ -259,9 +250,7 @@ export function findFeaturesByBrowserVersion(
     if (!node?.__compat) continue;
 
     const stmt = normalizeSupportStatement(
-      node.__compat.support[browser] as
-        | BcdSupportStatement
-        | BcdSupportStatement[]
+      node.__compat.support[browser] as BcdSupportStatement | BcdSupportStatement[]
     );
     if (!stmt) continue;
 
