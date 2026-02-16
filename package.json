@@ -1,68 +1,68 @@
 {
-  "name": "@shuji-bonji/web-compat-mcp",
-  "version": "0.1.0",
-  "description": "MCP server providing browser compatibility data from MDN BCD and W3C WebDX web-features for the entire Web Platform",
-  "type": "module",
-  "main": "dist/index.js",
-  "bin": {
-    "web-compat-mcp": "dist/index.js"
-  },
-  "files": [
-    "dist/**/*.js",
-    "dist/**/*.d.ts",
-    "LICENSE",
-    "README.md",
-    "CHANGELOG.md"
-  ],
-  "scripts": {
-    "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "clean": "rm -rf dist",
-    "lint": "biome check src/",
-    "lint:fix": "biome check --write src/",
-    "format": "biome format --write src/",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:e2e": "vitest run --config vitest.e2e.config.ts",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run build"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "keywords": [
-    "mcp",
-    "model-context-protocol",
-    "browser-compatibility",
-    "caniuse",
-    "baseline",
-    "web-features",
-    "bcd",
-    "mdn"
-  ],
-  "author": "shuji-bonji",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/shuji-bonji/web-compat-mcp.git"
-  },
-  "homepage": "https://github.com/shuji-bonji/web-compat-mcp#readme",
-  "bugs": {
-    "url": "https://github.com/shuji-bonji/web-compat-mcp/issues"
-  },
-  "dependencies": {
-    "@mdn/browser-compat-data": "^6.0.0",
-    "@modelcontextprotocol/sdk": "^1.6.1",
-    "web-features": "^2.0.0",
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.4.1",
-    "@types/node": "^22.10.0",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2",
-    "vitest": "^4.0.18"
-  }
+	"name": "@shuji-bonji/web-compat-mcp",
+	"version": "0.1.1",
+	"description": "MCP server providing browser compatibility data from MDN BCD and W3C WebDX web-features for the entire Web Platform",
+	"type": "module",
+	"main": "dist/index.js",
+	"bin": {
+		"web-compat-mcp": "dist/index.js"
+	},
+	"files": [
+		"dist/**/*.js",
+		"dist/**/*.d.ts",
+		"LICENSE",
+		"README.md",
+		"CHANGELOG.md"
+	],
+	"scripts": {
+		"start": "node dist/index.js",
+		"dev": "tsx watch src/index.ts",
+		"build": "tsc",
+		"clean": "rm -rf dist",
+		"lint": "biome check src/",
+		"lint:fix": "biome check --write src/",
+		"format": "biome format --write src/",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
+		"test:e2e": "vitest run --config vitest.e2e.config.ts",
+		"typecheck": "tsc --noEmit",
+		"prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run build"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"keywords": [
+		"mcp",
+		"model-context-protocol",
+		"browser-compatibility",
+		"caniuse",
+		"baseline",
+		"web-features",
+		"bcd",
+		"mdn"
+	],
+	"author": "shuji-bonji",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/shuji-bonji/web-compat-mcp.git"
+	},
+	"homepage": "https://github.com/shuji-bonji/web-compat-mcp#readme",
+	"bugs": {
+		"url": "https://github.com/shuji-bonji/web-compat-mcp/issues"
+	},
+	"dependencies": {
+		"@mdn/browser-compat-data": "^6.0.0",
+		"@modelcontextprotocol/sdk": "^1.6.1",
+		"web-features": "^2.0.0",
+		"zod": "^3.23.8"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.1",
+		"@types/node": "^22.10.0",
+		"tsx": "^4.19.2",
+		"typescript": "^5.7.2",
+		"vitest": "^4.0.18"
+	}
 }

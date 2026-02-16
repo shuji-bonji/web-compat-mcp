@@ -1,4 +1,4 @@
-# @shuji-bonji/web-compat-mcp
+# Web Compat MCP server
 
 [![CI](https://github.com/shuji-bonji/web-compat-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/shuji-bonji/web-compat-mcp/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/@shuji-bonji/web-compat-mcp)](https://www.npmjs.com/package/@shuji-bonji/web-compat-mcp)
@@ -40,15 +40,15 @@ _「この機能、本当にブラウザで動くの？」_ という質問に�
 
 ## ツール一覧
 
-| ツール | 説明 |
-|--------|------|
-| `compat_check` | 特定機能のブラウザ互換性チェック（BCD ドット表記） |
-| `compat_search` | 15,000以上の BCD 機能をキーワード検索 |
-| `compat_get_baseline` | Web 機能の Baseline ステータス取得（web-features ケバブケース） |
-| `compat_list_baseline` | Baseline ステータスでフィルタリングした機能一覧 |
-| `compat_compare` | 2〜5 機能のブラウザ互換性を横並び比較 |
-| `compat_list_browsers` | 追跡中の全ブラウザとバージョン一覧 |
-| `compat_check_support` | 特定ブラウザバージョンで追加された機能の検索 |
+| ツール                 | 説明                                                            |
+| ---------------------- | --------------------------------------------------------------- |
+| `compat_check`         | 特定機能のブラウザ互換性チェック（BCD ドット表記）              |
+| `compat_search`        | 15,000以上の BCD 機能をキーワード検索                           |
+| `compat_get_baseline`  | Web 機能の Baseline ステータス取得（web-features ケバブケース） |
+| `compat_list_baseline` | Baseline ステータスでフィルタリングした機能一覧                 |
+| `compat_compare`       | 2〜5 機能のブラウザ互換性を横並び比較                           |
+| `compat_list_browsers` | 追跡中の全ブラウザとバージョン一覧                              |
+| `compat_check_support` | 特定ブラウザバージョンで追加された機能の検索                    |
 
 ## クイックスタート
 
@@ -73,12 +73,12 @@ web-compat-mcp
 
 ```json
 {
-  "mcpServers": {
-    "web-compat": {
-      "command": "npx",
-      "args": ["-y", "@shuji-bonji/web-compat-mcp"]
-    }
-  }
+	"mcpServers": {
+		"web-compat": {
+			"command": "npx",
+			"args": ["-y", "@shuji-bonji/web-compat-mcp"]
+		}
+	}
 }
 ```
 
@@ -94,12 +94,12 @@ claude mcp add web-compat -- npx -y @shuji-bonji/web-compat-mcp
 
 ```json
 {
-  "servers": {
-    "web-compat": {
-      "command": "npx",
-      "args": ["-y", "@shuji-bonji/web-compat-mcp"]
-    }
-  }
+	"servers": {
+		"web-compat": {
+			"command": "npx",
+			"args": ["-y", "@shuji-bonji/web-compat-mcp"]
+		}
+	}
 }
 ```
 
@@ -166,18 +166,18 @@ Baseline レベル（Widely Available / Newly Available / Not Baseline）、ブ�
 
 このサーバーは他の MCP サーバーと組み合わせて使うことを想定しています：
 
-| サーバー | 役割 | このサーバーの補完関係 |
-|----------|------|------------------------|
-| **W3C MCP** | 仕様定義（MUST/SHOULD/MAY） | 実際のブラウザ実装状況 |
-| **RFCXML MCP** | RFC 要件 | ブラウザレベルのプロトコルサポート |
-| **css-mcp** | CSS ドキュメント＋コード分析 | プラットフォーム全体の互換性＋Baseline |
+| サーバー       | 役割                         | このサーバーの補完関係                 |
+| -------------- | ---------------------------- | -------------------------------------- |
+| **W3C MCP**    | 仕様定義（MUST/SHOULD/MAY）  | 実際のブラウザ実装状況                 |
+| **RFCXML MCP** | RFC 要件                     | ブラウザレベルのプロトコルサポート     |
+| **css-mcp**    | CSS ドキュメント＋コード分析 | プラットフォーム全体の互換性＋Baseline |
 
 ## データソース
 
-| ソース | パッケージ | 機能数 | 更新頻度 |
-|--------|-----------|--------|----------|
-| [MDN BCD](https://github.com/mdn/browser-compat-data) | `@mdn/browser-compat-data` | 15,000+ | 週次 |
-| [web-features](https://github.com/web-platform-dx/web-features) | `web-features` | 1,000+ | 月次 |
+| ソース                                                          | パッケージ                 | 機能数  | 更新頻度 |
+| --------------------------------------------------------------- | -------------------------- | ------- | -------- |
+| [MDN BCD](https://github.com/mdn/browser-compat-data)           | `@mdn/browser-compat-data` | 15,000+ | 週次     |
+| [web-features](https://github.com/web-platform-dx/web-features) | `web-features`             | 1,000+  | 月次     |
 
 ## 開発
 

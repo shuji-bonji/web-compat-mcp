@@ -1,4 +1,4 @@
-# @shuji-bonji/web-compat-mcp
+# Web Compat MCP server
 
 [![CI](https://github.com/shuji-bonji/web-compat-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/shuji-bonji/web-compat-mcp/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/@shuji-bonji/web-compat-mcp)](https://www.npmjs.com/package/@shuji-bonji/web-compat-mcp)
@@ -40,15 +40,15 @@ Uses [MDN Browser Compat Data (BCD)](https://github.com/mdn/browser-compat-data)
 
 ## Tools
 
-| Tool | Description |
-|------|-------------|
-| `compat_check` | Check browser compatibility for a single feature (BCD dot notation) |
-| `compat_search` | Search 15,000+ BCD features by keyword |
-| `compat_get_baseline` | Get Baseline status for a web feature (web-features kebab-case) |
-| `compat_list_baseline` | List features filtered by Baseline status |
-| `compat_compare` | Compare browser compatibility across 2–5 features side by side |
-| `compat_list_browsers` | List all tracked browsers with versions |
-| `compat_check_support` | Find features added in a specific browser version |
+| Tool                   | Description                                                         |
+| ---------------------- | ------------------------------------------------------------------- |
+| `compat_check`         | Check browser compatibility for a single feature (BCD dot notation) |
+| `compat_search`        | Search 15,000+ BCD features by keyword                              |
+| `compat_get_baseline`  | Get Baseline status for a web feature (web-features kebab-case)     |
+| `compat_list_baseline` | List features filtered by Baseline status                           |
+| `compat_compare`       | Compare browser compatibility across 2–5 features side by side      |
+| `compat_list_browsers` | List all tracked browsers with versions                             |
+| `compat_check_support` | Find features added in a specific browser version                   |
 
 ## Quick Start
 
@@ -73,12 +73,12 @@ Add to `claude_desktop_config.json`:
 
 ```json
 {
-  "mcpServers": {
-    "web-compat": {
-      "command": "npx",
-      "args": ["-y", "@shuji-bonji/web-compat-mcp"]
-    }
-  }
+	"mcpServers": {
+		"web-compat": {
+			"command": "npx",
+			"args": ["-y", "@shuji-bonji/web-compat-mcp"]
+		}
+	}
 }
 ```
 
@@ -94,12 +94,12 @@ Add to `.vscode/mcp.json`:
 
 ```json
 {
-  "servers": {
-    "web-compat": {
-      "command": "npx",
-      "args": ["-y", "@shuji-bonji/web-compat-mcp"]
-    }
-  }
+	"servers": {
+		"web-compat": {
+			"command": "npx",
+			"args": ["-y", "@shuji-bonji/web-compat-mcp"]
+		}
+	}
 }
 ```
 
@@ -166,18 +166,18 @@ All tools support `response_format` parameter:
 
 This server is designed to work alongside other MCP servers:
 
-| Server | Role | This Server's Complement |
-|--------|------|--------------------------|
-| **W3C MCP** | Spec definitions (MUST/SHOULD/MAY) | Real browser implementation status |
-| **RFCXML MCP** | RFC requirements | Browser-level protocol support |
-| **css-mcp** | CSS docs + code analysis | Platform-wide compat + Baseline |
+| Server         | Role                               | This Server's Complement           |
+| -------------- | ---------------------------------- | ---------------------------------- |
+| **W3C MCP**    | Spec definitions (MUST/SHOULD/MAY) | Real browser implementation status |
+| **RFCXML MCP** | RFC requirements                   | Browser-level protocol support     |
+| **css-mcp**    | CSS docs + code analysis           | Platform-wide compat + Baseline    |
 
 ## Data Sources
 
-| Source | Package | Features | Update Frequency |
-|--------|---------|----------|-----------------|
-| [MDN BCD](https://github.com/mdn/browser-compat-data) | `@mdn/browser-compat-data` | 15,000+ | Weekly |
-| [web-features](https://github.com/web-platform-dx/web-features) | `web-features` | 1,000+ | Monthly |
+| Source                                                          | Package                    | Features | Update Frequency |
+| --------------------------------------------------------------- | -------------------------- | -------- | ---------------- |
+| [MDN BCD](https://github.com/mdn/browser-compat-data)           | `@mdn/browser-compat-data` | 15,000+  | Weekly           |
+| [web-features](https://github.com/web-platform-dx/web-features) | `web-features`             | 1,000+   | Monthly          |
 
 ## Development
 
