@@ -123,3 +123,69 @@ export const CompatListBaselineInputSchema = z
 export type CompatListBaselineInput = z.infer<
   typeof CompatListBaselineInputSchema
 >;
+
+/**
+ * compat_compare — Compare browser compatibility across multiple features
+ */
+export const CompatCompareInputSchema = z
+  .object({
+    features: z
+      .array(z.string().min(1))
+      .min(2, "At least 2 features required for comparison")
+      .max(5, "Maximum 5 features can be compared at once")
+      .describe(
+        'Array of BCD feature identifiers to compare (e.g., ["api.fetch", "api.XMLHttpRequest"])'
+      ),
+    browsers: z
+      .array(z.string())
+      .optional()
+      .describe(
+        'Filter to specific browsers (e.g., ["chrome", "safari"]). Omit for default desktop browsers.'
+      ),
+    response_format: responseFormatSchema,
+  })
+  .strict();
+
+export type CompatCompareInput = z.infer<typeof CompatCompareInputSchema>;
+
+/**
+ * compat_list_browsers — List tracked browsers
+ */
+export const CompatListBrowsersInputSchema = z
+  .object({
+    response_format: responseFormatSchema,
+  })
+  .strict();
+
+export type CompatListBrowsersInput = z.infer<
+  typeof CompatListBrowsersInputSchema
+>;
+
+/**
+ * compat_check_support — Find features supported in a specific browser version
+ */
+export const CompatCheckSupportInputSchema = z
+  .object({
+    browser: z
+      .string()
+      .min(1, "Browser name is required")
+      .describe(
+        'Browser identifier (e.g., "safari", "chrome", "firefox")'
+      ),
+    version: z
+      .string()
+      .min(1, "Version is required")
+      .describe('Browser version (e.g., "17.0", "120", "121")'),
+    category: z
+      .enum(BCD_CATEGORIES)
+      .optional()
+      .describe('Filter by BCD category (e.g., "api", "css")'),
+    limit: limitSchema,
+    offset: offsetSchema,
+    response_format: responseFormatSchema,
+  })
+  .strict();
+
+export type CompatCheckSupportInput = z.infer<
+  typeof CompatCheckSupportInputSchema
+>;

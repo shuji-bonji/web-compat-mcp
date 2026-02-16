@@ -122,9 +122,11 @@ function collectFeaturePaths(
   for (const key of Object.keys(node)) {
     if (key === "__compat" || key === "__meta") continue;
     const child = node[key];
-    if (child && typeof child === "object" && child.__compat) {
-      results.push(`${prefix}.${key}`);
-      // Recurse into sub-features
+    if (child && typeof child === "object") {
+      if (child.__compat) {
+        results.push(`${prefix}.${key}`);
+      }
+      // Always recurse into sub-features (intermediate nodes like css.properties may lack __compat)
       collectFeaturePaths(child, `${prefix}.${key}`, results, maxDepth, currentDepth + 1);
     }
   }
@@ -220,4 +222,61 @@ export function getBrowsers(): BrowserInfo[] {
  */
 export function getCategories(): string[] {
   return [...BCD_CATEGORIES];
+}
+
+/**
+ * Find features added in a specific browser version.
+ * Returns features where version_added matches the given version.
+ */
+export function findFeaturesByBrowserVersion(
+  browser: string,
+  version: string,
+  category?: string,
+  limit: number = 20,
+  offset: number = 0
+): {
+  total: number;
+  features: Array<{ id: string; version_added: string }>;
+  has_more: boolean;
+} {
+  const categories = category
+    ? [category as BcdCategory]
+    : [...BCD_CATEGORIES];
+
+  const allPaths: string[] = [];
+  for (const cat of categories) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const catData = (bcd as any)[cat];
+    if (!catData) continue;
+    collectFeaturePaths(catData, cat, allPaths, 4);
+  }
+
+  // Filter features where the browser's version_added matches
+  const matches: Array<{ id: string; version_added: string }> = [];
+
+  for (const path of allPaths) {
+    const node = getFeatureByPath(path);
+    if (!node?.__compat) continue;
+
+    const stmt = normalizeSupportStatement(
+      node.__compat.support[browser] as
+        | BcdSupportStatement
+        | BcdSupportStatement[]
+    );
+    if (!stmt) continue;
+
+    const va = stmt.version_added;
+    if (typeof va === "string" && va === version) {
+      matches.push({ id: path, version_added: va });
+    }
+  }
+
+  const total = matches.length;
+  const sliced = matches.slice(offset, offset + limit);
+
+  return {
+    total,
+    features: sliced,
+    has_more: total > offset + limit,
+  };
 }

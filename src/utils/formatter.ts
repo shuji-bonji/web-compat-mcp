@@ -231,6 +231,149 @@ export function formatBaselineListMarkdown(
 }
 
 /**
+ * Format compat_compare result as Markdown
+ */
+export function formatCompareMarkdown(
+  results: FeatureCompatResult[],
+  notFound: string[]
+): string {
+  const lines: string[] = [];
+
+  lines.push("# Feature Comparison");
+  lines.push("");
+
+  if (notFound.length > 0) {
+    lines.push(
+      `> ⚠️ Not found: ${notFound.map((f) => `\`${f}\``).join(", ")}`
+    );
+    lines.push("");
+  }
+
+  // Collect all browser IDs from all results
+  const allBrowsers = new Set<string>();
+  for (const result of results) {
+    for (const browserId of Object.keys(result.support)) {
+      allBrowsers.add(browserId);
+    }
+  }
+
+  const browsers = [...allBrowsers].sort();
+
+  // Build comparison table
+  const header = ["| Browser", ...results.map((r) => `| \`${r.id}\``)].join(
+    " "
+  ) + " |";
+  const separator = ["|---", ...results.map(() => "|---")].join("") + "|";
+
+  lines.push(header);
+  lines.push(separator);
+
+  for (const browserId of browsers) {
+    const cells = results.map((r) => {
+      const data = r.support[browserId];
+      if (!data) return "| — ";
+      const version = formatVersion(data.version_added);
+      const extras: string[] = [];
+      if (data.flags) extras.push("🚩");
+      if (data.partial_implementation) extras.push("⚠️");
+      return `| ${version}${extras.length > 0 ? " " + extras.join("") : ""} `;
+    });
+    lines.push(`| ${browserId} ${cells.join("")}|`);
+  }
+  lines.push("");
+
+  // Baseline comparison
+  const baselineRows = results.filter((r) => r.baseline);
+  if (baselineRows.length > 0) {
+    lines.push("## Baseline Status");
+    lines.push("");
+    for (const r of results) {
+      const bl = r.baseline
+        ? baselineEmoji(r.baseline.status)
+        : "No data";
+      lines.push(`- \`${r.id}\`: ${bl}`);
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+/**
+ * Format browser list as Markdown
+ */
+export function formatBrowsersMarkdown(browsers: BrowserInfo[]): string {
+  const lines: string[] = [];
+
+  lines.push("# Tracked Browsers");
+  lines.push("");
+  lines.push(`Total: **${browsers.length}** browsers`);
+  lines.push("");
+
+  // Group by type
+  const grouped: Record<string, BrowserInfo[]> = {};
+  for (const b of browsers) {
+    const type = b.type || "unknown";
+    if (!grouped[type]) grouped[type] = [];
+    grouped[type].push(b);
+  }
+
+  for (const [type, list] of Object.entries(grouped)) {
+    lines.push(`## ${type.charAt(0).toUpperCase() + type.slice(1)}`);
+    lines.push("");
+    lines.push("| ID | Name | Current Version | Release Date |");
+    lines.push("|----|------|-----------------|--------------|");
+    for (const b of list) {
+      lines.push(
+        `| ${b.id} | ${b.name} | ${b.current_version ?? "—"} | ${
+          b.release_date ?? "—"
+        } |`
+      );
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+/**
+ * Format check_support result as Markdown
+ */
+export function formatCheckSupportMarkdown(
+  browser: string,
+  version: string,
+  results: {
+    total: number;
+    features: Array<{ id: string; version_added: string }>;
+    has_more: boolean;
+  }
+): string {
+  const lines: string[] = [];
+
+  lines.push(`# Features added in ${browser} ${version}`);
+  lines.push("");
+  lines.push(
+    `Found **${results.total}** features (showing ${results.features.length})`
+  );
+  lines.push("");
+
+  lines.push("| Feature ID |");
+  lines.push("|------------|");
+  for (const f of results.features) {
+    lines.push(`| \`${f.id}\` |`);
+  }
+
+  if (results.has_more) {
+    lines.push("");
+    lines.push(
+      `> ${results.total - results.features.length} more results available. Use \`offset\` parameter to paginate.`
+    );
+  }
+
+  return lines.join("\n");
+}
+
+/**
  * Truncate response if needed
  */
 export function truncateIfNeeded(text: string): string {

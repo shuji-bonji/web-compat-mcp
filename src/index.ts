@@ -18,6 +18,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { registerCompatTools } from "./tools/compat.js";
 import { registerSearchTools } from "./tools/search.js";
 import { registerBaselineTools } from "./tools/baseline.js";
+import { registerBrowserTools } from "./tools/browsers.js";
 
 // Create MCP server instance
 const server = new McpServer({
@@ -29,6 +30,7 @@ const server = new McpServer({
 registerCompatTools(server);
 registerSearchTools(server);
 registerBaselineTools(server);
+registerBrowserTools(server);
 
 // Run with stdio transport
 async function main(): Promise<void> {
