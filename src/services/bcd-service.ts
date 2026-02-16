@@ -6,7 +6,7 @@
  */
 
 import bcd from "@mdn/browser-compat-data" with { type: "json" };
-import { BCD_CATEGORIES, DESKTOP_BROWSERS } from "../constants.js";
+import { BCD_CATEGORIES, BCD_MAX_TRAVERSE_DEPTH, DESKTOP_BROWSERS } from "../constants.js";
 import type {
   BcdCompatData,
   BcdSupportStatement,
@@ -14,6 +14,7 @@ import type {
   FeatureCompatResult,
   SearchResultItem,
 } from "../types.js";
+import { findWebFeatureByBcdId, getBaselineStatus } from "./features-service.js";
 
 type BcdCategory = (typeof BCD_CATEGORIES)[number];
 
@@ -50,23 +51,14 @@ function normalizeSupportStatement(
 ): BcdSupportStatement | null {
   if (!statement) return null;
   if (Array.isArray(statement)) {
-    // Return the most relevant (first without flags, or just first)
     return statement.find((s) => !s.flags) ?? statement[0] ?? null;
   }
   return statement;
 }
 
 /**
- * Extract the web-features tag from BCD tags
- */
-function extractWebFeaturesTag(tags?: string[]): string | null {
-  if (!tags) return null;
-  const tag = tags.find((t) => t.startsWith("web-features:"));
-  return tag ? tag.replace("web-features:", "") : null;
-}
-
-/**
- * Get compatibility data for a specific BCD feature
+ * Get compatibility data for a specific BCD feature.
+ * Baseline data is resolved internally via web-features cross-reference.
  */
 export function getFeatureCompat(
   featureId: string,
@@ -95,17 +87,67 @@ export function getFeatureCompat(
     }
   }
 
-  const webFeatureId = extractWebFeaturesTag(compat.tags);
+  // Resolve Baseline data from web-features (fix: was returning placeholder)
+  let baseline: FeatureCompatResult["baseline"] = null;
+  const webFeatureId = findWebFeatureByBcdId(featureId);
+  if (webFeatureId) {
+    const baselineData = getBaselineStatus(webFeatureId);
+    if (baselineData) {
+      baseline = baselineData.baseline;
+    }
+  }
 
   return {
     id: featureId,
-    description: compat.mdn_url ? `See MDN: ${compat.mdn_url}` : undefined,
+    description: compat.status?.deprecated
+      ? "⛔ Deprecated"
+      : compat.status?.experimental
+        ? "⚠️ Experimental"
+        : undefined,
     mdn_url: compat.mdn_url,
     spec_url: compat.spec_url,
     status: compat.status,
     support,
-    baseline: webFeatureId ? { status: false, low_date: null, high_date: null } : null,
+    baseline,
   };
+}
+
+// ──────────────────────────────────────────────────────────────
+// Feature path index (lazy-initialized cache for 5-1)
+// ──────────────────────────────────────────────────────────────
+
+/** Cached feature paths per category */
+let featurePathIndex: Map<string, string[]> | null = null;
+
+/**
+ * Get or build the lazy-initialized feature path index.
+ * Avoids re-traversing the entire BCD tree (15K+ features) on every call.
+ */
+function getFeaturePathIndex(): Map<string, string[]> {
+  if (featurePathIndex) return featurePathIndex;
+
+  featurePathIndex = new Map();
+  for (const cat of BCD_CATEGORIES) {
+    const catData = (bcd as unknown as BcdNode)[cat];
+    if (!isBcdNode(catData)) continue;
+    const paths: string[] = [];
+    collectFeaturePaths(catData, cat, paths, BCD_MAX_TRAVERSE_DEPTH);
+    featurePathIndex.set(cat, paths);
+  }
+  return featurePathIndex;
+}
+
+/**
+ * Get all feature paths for specified categories (from cache)
+ */
+function getPathsForCategories(categories: readonly string[]): string[] {
+  const index = getFeaturePathIndex();
+  const allPaths: string[] = [];
+  for (const cat of categories) {
+    const paths = index.get(cat);
+    if (paths) allPaths.push(...paths);
+  }
+  return allPaths;
 }
 
 /**
@@ -115,7 +157,7 @@ function collectFeaturePaths(
   node: BcdNode,
   prefix: string,
   results: string[],
-  maxDepth: number = 4,
+  maxDepth: number = BCD_MAX_TRAVERSE_DEPTH,
   currentDepth: number = 0
 ): void {
   if (currentDepth > maxDepth) return;
@@ -145,13 +187,7 @@ export function searchFeatures(
   const lowerQuery = query.toLowerCase();
   const categories = category ? [category as BcdCategory] : [...BCD_CATEGORIES];
 
-  const allPaths: string[] = [];
-
-  for (const cat of categories) {
-    const catData = (bcd as unknown as BcdNode)[cat];
-    if (!isBcdNode(catData)) continue;
-    collectFeaturePaths(catData, cat, allPaths);
-  }
+  const allPaths = getPathsForCategories(categories);
 
   // Filter by query (match against path)
   const matches = allPaths.filter((path) => path.toLowerCase().includes(lowerQuery));
@@ -178,16 +214,24 @@ export function searchFeatures(
   };
 }
 
+// ──────────────────────────────────────────────────────────────
+// Browser data (cached — immutable data)
+// ──────────────────────────────────────────────────────────────
+
+/** Cached browser info list */
+let browsersCache: BrowserInfo[] | null = null;
+
 /**
- * Get browser information from BCD
+ * Get browser information from BCD (cached)
  */
 export function getBrowsers(): BrowserInfo[] {
+  if (browsersCache) return browsersCache;
+
   const result: BrowserInfo[] = [];
   const browsersData = bcd.browsers;
 
   for (const [id, browser] of Object.entries(browsersData)) {
     const releases = browser.releases;
-    // Find the latest current release
     let currentVersion: string | undefined;
     let releaseDate: string | undefined;
 
@@ -208,6 +252,7 @@ export function getBrowsers(): BrowserInfo[] {
     });
   }
 
+  browsersCache = result;
   return result;
 }
 
@@ -235,12 +280,7 @@ export function findFeaturesByBrowserVersion(
 } {
   const categories = category ? [category as BcdCategory] : [...BCD_CATEGORIES];
 
-  const allPaths: string[] = [];
-  for (const cat of categories) {
-    const catData = (bcd as unknown as BcdNode)[cat];
-    if (!isBcdNode(catData)) continue;
-    collectFeaturePaths(catData, cat, allPaths, 4);
-  }
+  const allPaths = getPathsForCategories(categories);
 
   // Filter features where the browser's version_added matches
   const matches: Array<{ id: string; version_added: string }> = [];

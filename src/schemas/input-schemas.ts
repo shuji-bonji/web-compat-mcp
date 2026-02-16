@@ -3,7 +3,16 @@
  */
 
 import { z } from "zod";
-import { BCD_CATEGORIES, DEFAULT_LIMIT, MAX_LIMIT, ResponseFormat } from "../constants.js";
+import {
+  BCD_CATEGORIES,
+  DEFAULT_LIMIT,
+  MAX_COMPARE_FEATURES,
+  MAX_LIMIT,
+  MAX_SEARCH_QUERY_LENGTH,
+  MIN_COMPARE_FEATURES,
+  MIN_SEARCH_QUERY_LENGTH,
+  ResponseFormat,
+} from "../constants.js";
 
 /** Response format schema (shared) */
 const responseFormatSchema = z
@@ -57,8 +66,8 @@ export const CompatSearchInputSchema = z
   .object({
     query: z
       .string()
-      .min(2, "Query must be at least 2 characters")
-      .max(200, "Query must not exceed 200 characters")
+      .min(MIN_SEARCH_QUERY_LENGTH, `Query must be at least ${MIN_SEARCH_QUERY_LENGTH} characters`)
+      .max(MAX_SEARCH_QUERY_LENGTH, `Query must not exceed ${MAX_SEARCH_QUERY_LENGTH} characters`)
       .describe(
         'Search keyword to match against feature identifiers (e.g., "push", "grid", "service-worker")'
       ),
@@ -121,8 +130,11 @@ export const CompatCompareInputSchema = z
   .object({
     features: z
       .array(z.string().min(1))
-      .min(2, "At least 2 features required for comparison")
-      .max(5, "Maximum 5 features can be compared at once")
+      .min(
+        MIN_COMPARE_FEATURES,
+        `At least ${MIN_COMPARE_FEATURES} features required for comparison`
+      )
+      .max(MAX_COMPARE_FEATURES, `Maximum ${MAX_COMPARE_FEATURES} features can be compared at once`)
       .describe(
         'Array of BCD feature identifiers to compare (e.g., ["api.fetch", "api.XMLHttpRequest"])'
       ),

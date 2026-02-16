@@ -12,6 +12,7 @@
  * @see https://github.com/shuji-bonji/web-compat-mcp
  */
 
+import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerBaselineTools } from "./tools/baseline.js";
@@ -19,10 +20,14 @@ import { registerBrowserTools } from "./tools/browsers.js";
 import { registerCompatTools } from "./tools/compat.js";
 import { registerSearchTools } from "./tools/search.js";
 
+// Read version from package.json dynamically
+const require = createRequire(import.meta.url);
+const { version } = require("../package.json") as { version: string };
+
 // Create MCP server instance
 const server = new McpServer({
   name: "web-compat-mcp",
-  version: "0.1.0",
+  version,
 });
 
 // Register all tools

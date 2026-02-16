@@ -3,7 +3,6 @@
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ResponseFormat } from "../constants.js";
 import {
   type CompatCheckSupportInput,
   CompatCheckSupportInputSchema,
@@ -12,11 +11,8 @@ import {
 } from "../schemas/input-schemas.js";
 import { findFeaturesByBrowserVersion, getBrowsers } from "../services/bcd-service.js";
 import { handleError } from "../utils/error-handler.js";
-import {
-  formatBrowsersMarkdown,
-  formatCheckSupportMarkdown,
-  truncateIfNeeded,
-} from "../utils/formatter.js";
+import { formatBrowsersMarkdown, formatCheckSupportMarkdown } from "../utils/formatter.js";
+import { formatToolResponse, paginatedOutput, textResponse } from "../utils/tool-helpers.js";
 
 export function registerBrowserTools(server: McpServer): void {
   // compat_list_browsers — List tracked browsers
@@ -46,24 +42,13 @@ Examples:
     async (params: CompatListBrowsersInput) => {
       try {
         const browsers = getBrowsers();
+        const output = { total: browsers.length, browsers };
 
-        if (params.response_format === ResponseFormat.JSON) {
-          const output = { total: browsers.length, browsers };
-          const text = JSON.stringify(output, null, 2);
-          return {
-            content: [{ type: "text" as const, text: truncateIfNeeded(text) }],
-            structuredContent: output,
-          };
-        }
-
-        const markdown = formatBrowsersMarkdown(browsers);
-        return {
-          content: [{ type: "text" as const, text: truncateIfNeeded(markdown) }],
-        };
+        return formatToolResponse(params.response_format, output, () =>
+          formatBrowsersMarkdown(browsers)
+        );
       } catch (error) {
-        return {
-          content: [{ type: "text" as const, text: handleError(error) }],
-        };
+        return textResponse(handleError(error));
       }
     }
   );
@@ -111,44 +96,26 @@ Examples:
         );
 
         if (results.total === 0) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `No features found for ${params.browser} version ${params.version}${
-                  params.category ? ` in category "${params.category}"` : ""
-                }. Try a different version or check with \`compat_list_browsers\` for available browsers.`,
-              },
-            ],
-          };
+          return textResponse(
+            `No features found for ${params.browser} version ${params.version}${
+              params.category ? ` in category "${params.category}"` : ""
+            }. Try a different version or check with \`compat_list_browsers\` for available browsers.`
+          );
         }
 
-        if (params.response_format === ResponseFormat.JSON) {
-          const output = {
-            browser: params.browser,
-            version: params.version,
-            total: results.total,
-            count: results.features.length,
-            offset: params.offset,
-            features: results.features,
-            has_more: results.has_more,
-            ...(results.has_more ? { next_offset: params.offset + results.features.length } : {}),
-          };
-          const text = JSON.stringify(output, null, 2);
-          return {
-            content: [{ type: "text" as const, text: truncateIfNeeded(text) }],
-            structuredContent: output,
-          };
-        }
+        const output = paginatedOutput(
+          { browser: params.browser, version: params.version, features: results.features },
+          results.features,
+          results.total,
+          params.offset,
+          results.has_more
+        );
 
-        const markdown = formatCheckSupportMarkdown(params.browser, params.version, results);
-        return {
-          content: [{ type: "text" as const, text: truncateIfNeeded(markdown) }],
-        };
+        return formatToolResponse(params.response_format, output, () =>
+          formatCheckSupportMarkdown(params.browser, params.version, results)
+        );
       } catch (error) {
-        return {
-          content: [{ type: "text" as const, text: handleError(error) }],
-        };
+        return textResponse(handleError(error));
       }
     }
   );

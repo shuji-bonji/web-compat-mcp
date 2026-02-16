@@ -39,7 +39,6 @@ export interface BcdFeatureNode {
 
 /** Processed feature result for tool output */
 export interface FeatureCompatResult {
-  [key: string]: unknown;
   id: string;
   description?: string;
   mdn_url?: string;
@@ -78,7 +77,6 @@ export interface SearchResultItem {
 
 /** Baseline feature result */
 export interface BaselineFeatureResult {
-  [key: string]: unknown;
   id: string;
   name: string;
   description?: string;
@@ -101,4 +99,21 @@ export interface BrowserInfo {
   type: string;
   current_version?: string;
   release_date?: string;
+}
+
+/** web-features feature type (from web-features package) */
+export interface WebFeature {
+  name: string;
+  description?: string;
+  description_html?: string;
+  caniuse?: string[];
+  compat_features?: string[];
+  spec?: string | string[];
+  group?: string;
+  status?: {
+    baseline?: "high" | "low" | false;
+    baseline_low_date?: string;
+    baseline_high_date?: string;
+    support?: Record<string, string>;
+  };
 }

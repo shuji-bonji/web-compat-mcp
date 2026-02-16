@@ -3,7 +3,6 @@
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ResponseFormat } from "../constants.js";
 import {
   type CompatCheckInput,
   CompatCheckInputSchema,
@@ -11,14 +10,10 @@ import {
   CompatCompareInputSchema,
 } from "../schemas/input-schemas.js";
 import { getFeatureCompat } from "../services/bcd-service.js";
-import { findWebFeatureByBcdId, getBaselineStatus } from "../services/features-service.js";
 import type { FeatureCompatResult } from "../types.js";
 import { featureNotFoundError, handleError } from "../utils/error-handler.js";
-import {
-  formatCompareMarkdown,
-  formatCompatCheckMarkdown,
-  truncateIfNeeded,
-} from "../utils/formatter.js";
+import { formatCompareMarkdown, formatCompatCheckMarkdown } from "../utils/formatter.js";
+import { formatToolResponse, textResponse } from "../utils/tool-helpers.js";
 
 export function registerCompatTools(server: McpServer): void {
   server.registerTool(
@@ -54,36 +49,18 @@ Examples:
         const result = getFeatureCompat(params.feature, params.browsers);
 
         if (!result) {
-          return {
-            content: [{ type: "text" as const, text: featureNotFoundError(params.feature) }],
-          };
+          return textResponse(featureNotFoundError(params.feature));
         }
 
-        // Enrich with Baseline data via web-features cross-reference
-        const webFeatureId = findWebFeatureByBcdId(params.feature);
-        if (webFeatureId) {
-          const baselineData = getBaselineStatus(webFeatureId);
-          if (baselineData) {
-            result.baseline = baselineData.baseline;
-          }
-        }
+        // Baseline data is now resolved internally by getFeatureCompat
 
-        if (params.response_format === ResponseFormat.JSON) {
-          const text = JSON.stringify(result, null, 2);
-          return {
-            content: [{ type: "text" as const, text: truncateIfNeeded(text) }],
-            structuredContent: result,
-          };
-        }
-
-        const markdown = formatCompatCheckMarkdown(result);
-        return {
-          content: [{ type: "text" as const, text: truncateIfNeeded(markdown) }],
-        };
+        return formatToolResponse(
+          params.response_format,
+          result as unknown as Record<string, unknown>,
+          () => formatCompatCheckMarkdown(result)
+        );
       } catch (error) {
-        return {
-          content: [{ type: "text" as const, text: handleError(error) }],
-        };
+        return textResponse(handleError(error));
       }
     }
   );
@@ -123,16 +100,9 @@ Examples:
         const notFound: string[] = [];
 
         for (const featureId of params.features) {
+          // Baseline data is resolved internally by getFeatureCompat
           const result = getFeatureCompat(featureId, params.browsers);
           if (result) {
-            // Enrich with Baseline
-            const webFeatureId = findWebFeatureByBcdId(featureId);
-            if (webFeatureId) {
-              const baselineData = getBaselineStatus(webFeatureId);
-              if (baselineData) {
-                result.baseline = baselineData.baseline;
-              }
-            }
             results.push(result);
           } else {
             notFound.push(featureId);
@@ -140,14 +110,7 @@ Examples:
         }
 
         if (results.length === 0) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `None of the specified features were found: ${notFound.join(", ")}`,
-              },
-            ],
-          };
+          return textResponse(`None of the specified features were found: ${notFound.join(", ")}`);
         }
 
         const output = {
@@ -155,22 +118,13 @@ Examples:
           not_found: notFound.length > 0 ? notFound : undefined,
         };
 
-        if (params.response_format === ResponseFormat.JSON) {
-          const text = JSON.stringify(output, null, 2);
-          return {
-            content: [{ type: "text" as const, text: truncateIfNeeded(text) }],
-            structuredContent: output,
-          };
-        }
-
-        const markdown = formatCompareMarkdown(results, notFound);
-        return {
-          content: [{ type: "text" as const, text: truncateIfNeeded(markdown) }],
-        };
+        return formatToolResponse(
+          params.response_format,
+          output as unknown as Record<string, unknown>,
+          () => formatCompareMarkdown(results, notFound)
+        );
       } catch (error) {
-        return {
-          content: [{ type: "text" as const, text: handleError(error) }],
-        };
+        return textResponse(handleError(error));
       }
     }
   );

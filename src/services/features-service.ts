@@ -7,36 +7,39 @@
  */
 
 import { features, groups } from "web-features";
-import type { BaselineFeatureResult } from "../types.js";
+import type { BaselineFeatureResult, WebFeature } from "../types.js";
 
-/** web-features feature type */
-interface WebFeature {
-  name: string;
-  description?: string;
-  description_html?: string;
-  caniuse?: string[];
-  compat_features?: string[];
-  spec?: string | string[];
-  group?: string;
-  status?: {
-    baseline?: "high" | "low" | false;
-    baseline_low_date?: string;
-    baseline_high_date?: string;
-    support?: Record<string, string>;
-  };
+/** Typed reference to web-features data */
+const featuresData = features as Record<string, WebFeature>;
+
+/**
+ * Lazy-initialized reverse index: BCD feature ID → web-features ID
+ * Avoids O(n) linear scan on every findWebFeatureByBcdId call.
+ */
+let bcdToWebFeatureIndex: Map<string, string> | null = null;
+
+function getBcdToWebFeatureIndex(): Map<string, string> {
+  if (bcdToWebFeatureIndex) return bcdToWebFeatureIndex;
+
+  bcdToWebFeatureIndex = new Map();
+  for (const [id, feature] of Object.entries(featuresData)) {
+    if (feature.compat_features) {
+      for (const bcdId of feature.compat_features) {
+        bcdToWebFeatureIndex.set(bcdId, id);
+      }
+    }
+  }
+  return bcdToWebFeatureIndex;
 }
 
 /**
- * Get Baseline status for a specific web feature
+ * Convert a web-features entry to BaselineFeatureResult
+ * (Eliminates 3x duplication across getBaselineStatus, listByBaseline, searchWebFeatures)
  */
-export function getBaselineStatus(featureId: string): BaselineFeatureResult | null {
-  const feature = (features as Record<string, WebFeature>)[featureId];
-  if (!feature) return null;
-
+function toBaselineFeatureResult(id: string, feature: WebFeature): BaselineFeatureResult {
   const status = feature.status;
-
   return {
-    id: featureId,
+    id,
     name: feature.name,
     description: feature.description,
     baseline: {
@@ -53,6 +56,15 @@ export function getBaselineStatus(featureId: string): BaselineFeatureResult | nu
 }
 
 /**
+ * Get Baseline status for a specific web feature
+ */
+export function getBaselineStatus(featureId: string): BaselineFeatureResult | null {
+  const feature = featuresData[featureId];
+  if (!feature) return null;
+  return toBaselineFeatureResult(featureId, feature);
+}
+
+/**
  * List features filtered by Baseline status
  */
 export function listByBaseline(
@@ -65,50 +77,24 @@ export function listByBaseline(
   features: BaselineFeatureResult[];
   has_more: boolean;
 } {
-  const allFeatures = Object.entries(features as Record<string, WebFeature>);
+  const allFeatures = Object.entries(featuresData);
 
   const filtered = allFeatures.filter(([_id, feature]) => {
-    // Filter by baseline status
     if (statusFilter !== undefined) {
       const baseline = feature.status?.baseline ?? false;
       if (baseline !== statusFilter) return false;
     }
-
-    // Filter by group
     if (groupFilter) {
       if (feature.group !== groupFilter) return false;
     }
-
     return true;
   });
 
   const total = filtered.length;
   const sliced = filtered.slice(offset, offset + limit);
+  const results = sliced.map(([id, feature]) => toBaselineFeatureResult(id, feature));
 
-  const results: BaselineFeatureResult[] = sliced.map(([id, feature]) => {
-    const status = feature.status;
-    return {
-      id,
-      name: feature.name,
-      description: feature.description,
-      baseline: {
-        status: status?.baseline ?? false,
-        low_date: status?.baseline_low_date ?? null,
-        high_date: status?.baseline_high_date ?? null,
-      },
-      browser_support: status?.support ?? {},
-      compat_features: feature.compat_features ?? [],
-      spec: Array.isArray(feature.spec) ? feature.spec[0] : feature.spec,
-      group: feature.group,
-      caniuse: feature.caniuse,
-    };
-  });
-
-  return {
-    total,
-    features: results,
-    has_more: total > offset + limit,
-  };
+  return { total, features: results, has_more: total > offset + limit };
 }
 
 /**
@@ -124,7 +110,7 @@ export function searchWebFeatures(
   has_more: boolean;
 } {
   const lowerQuery = query.toLowerCase();
-  const allFeatures = Object.entries(features as Record<string, WebFeature>);
+  const allFeatures = Object.entries(featuresData);
 
   const filtered = allFeatures.filter(
     ([id, feature]) =>
@@ -135,43 +121,17 @@ export function searchWebFeatures(
 
   const total = filtered.length;
   const sliced = filtered.slice(offset, offset + limit);
+  const results = sliced.map(([id, feature]) => toBaselineFeatureResult(id, feature));
 
-  const results: BaselineFeatureResult[] = sliced.map(([id, feature]) => {
-    const status = feature.status;
-    return {
-      id,
-      name: feature.name,
-      description: feature.description,
-      baseline: {
-        status: status?.baseline ?? false,
-        low_date: status?.baseline_low_date ?? null,
-        high_date: status?.baseline_high_date ?? null,
-      },
-      browser_support: status?.support ?? {},
-      compat_features: feature.compat_features ?? [],
-      spec: Array.isArray(feature.spec) ? feature.spec[0] : feature.spec,
-      group: feature.group,
-      caniuse: feature.caniuse,
-    };
-  });
-
-  return {
-    total,
-    features: results,
-    has_more: total > offset + limit,
-  };
+  return { total, features: results, has_more: total > offset + limit };
 }
 
 /**
  * Find web-features ID from a BCD feature ID (via compat_features mapping)
+ * Uses lazy-initialized reverse index for O(1) lookup.
  */
 export function findWebFeatureByBcdId(bcdId: string): string | null {
-  for (const [id, feature] of Object.entries(features as Record<string, WebFeature>)) {
-    if (feature.compat_features?.includes(bcdId)) {
-      return id;
-    }
-  }
-  return null;
+  return getBcdToWebFeatureIndex().get(bcdId) ?? null;
 }
 
 /**

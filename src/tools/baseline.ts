@@ -3,7 +3,6 @@
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ResponseFormat } from "../constants.js";
 import {
   type CompatGetBaselineInput,
   CompatGetBaselineInputSchema,
@@ -12,11 +11,8 @@ import {
 } from "../schemas/input-schemas.js";
 import { getBaselineStatus, listByBaseline } from "../services/features-service.js";
 import { handleError, webFeatureNotFoundError } from "../utils/error-handler.js";
-import {
-  formatBaselineListMarkdown,
-  formatBaselineMarkdown,
-  truncateIfNeeded,
-} from "../utils/formatter.js";
+import { formatBaselineListMarkdown, formatBaselineMarkdown } from "../utils/formatter.js";
+import { formatToolResponse, paginatedOutput, textResponse } from "../utils/tool-helpers.js";
 
 export function registerBaselineTools(server: McpServer): void {
   server.registerTool(
@@ -54,27 +50,16 @@ Examples:
         const result = getBaselineStatus(params.feature);
 
         if (!result) {
-          return {
-            content: [{ type: "text" as const, text: webFeatureNotFoundError(params.feature) }],
-          };
+          return textResponse(webFeatureNotFoundError(params.feature));
         }
 
-        if (params.response_format === ResponseFormat.JSON) {
-          const text = JSON.stringify(result, null, 2);
-          return {
-            content: [{ type: "text" as const, text: truncateIfNeeded(text) }],
-            structuredContent: result,
-          };
-        }
-
-        const markdown = formatBaselineMarkdown(result);
-        return {
-          content: [{ type: "text" as const, text: truncateIfNeeded(markdown) }],
-        };
+        return formatToolResponse(
+          params.response_format,
+          result as unknown as Record<string, unknown>,
+          () => formatBaselineMarkdown(result)
+        );
       } catch (error) {
-        return {
-          content: [{ type: "text" as const, text: handleError(error) }],
-        };
+        return textResponse(handleError(error));
       }
     }
   );
@@ -118,40 +103,22 @@ Examples:
         const results = listByBaseline(statusFilter, params.group, params.limit, params.offset);
 
         if (results.total === 0) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: "No features found matching the specified filters.",
-              },
-            ],
-          };
+          return textResponse("No features found matching the specified filters.");
         }
 
-        if (params.response_format === ResponseFormat.JSON) {
-          const output = {
-            total: results.total,
-            count: results.features.length,
-            offset: params.offset,
-            features: results.features,
-            has_more: results.has_more,
-            ...(results.has_more ? { next_offset: params.offset + results.features.length } : {}),
-          };
-          const text = JSON.stringify(output, null, 2);
-          return {
-            content: [{ type: "text" as const, text: truncateIfNeeded(text) }],
-            structuredContent: output,
-          };
-        }
+        const output = paginatedOutput(
+          { features: results.features },
+          results.features,
+          results.total,
+          params.offset,
+          results.has_more
+        );
 
-        const markdown = formatBaselineListMarkdown(results, params.status);
-        return {
-          content: [{ type: "text" as const, text: truncateIfNeeded(markdown) }],
-        };
+        return formatToolResponse(params.response_format, output, () =>
+          formatBaselineListMarkdown(results, params.status)
+        );
       } catch (error) {
-        return {
-          content: [{ type: "text" as const, text: handleError(error) }],
-        };
+        return textResponse(handleError(error));
       }
     }
   );

@@ -3,11 +3,11 @@
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ResponseFormat } from "../constants.js";
 import { type CompatSearchInput, CompatSearchInputSchema } from "../schemas/input-schemas.js";
 import { searchFeatures } from "../services/bcd-service.js";
 import { handleError } from "../utils/error-handler.js";
-import { formatSearchMarkdown, truncateIfNeeded } from "../utils/formatter.js";
+import { formatSearchMarkdown } from "../utils/formatter.js";
+import { formatToolResponse, paginatedOutput, textResponse } from "../utils/tool-helpers.js";
 
 export function registerSearchTools(server: McpServer): void {
   server.registerTool(
@@ -55,35 +55,22 @@ Examples:
               ? `  - Try without the category filter to search all categories`
               : "  - Try filtering by category: api, css, html, javascript",
           ];
-          return {
-            content: [{ type: "text" as const, text: suggestions.join("\n") }],
-          };
+          return textResponse(suggestions.join("\n"));
         }
 
-        if (params.response_format === ResponseFormat.JSON) {
-          const output = {
-            total: results.total,
-            count: results.features.length,
-            offset: params.offset,
-            features: results.features,
-            has_more: results.has_more,
-            ...(results.has_more ? { next_offset: params.offset + results.features.length } : {}),
-          };
-          const text = JSON.stringify(output, null, 2);
-          return {
-            content: [{ type: "text" as const, text: truncateIfNeeded(text) }],
-            structuredContent: output,
-          };
-        }
+        const output = paginatedOutput(
+          { features: results.features },
+          results.features,
+          results.total,
+          params.offset,
+          results.has_more
+        );
 
-        const markdown = formatSearchMarkdown(results, params.query);
-        return {
-          content: [{ type: "text" as const, text: truncateIfNeeded(markdown) }],
-        };
+        return formatToolResponse(params.response_format, output, () =>
+          formatSearchMarkdown(results, params.query)
+        );
       } catch (error) {
-        return {
-          content: [{ type: "text" as const, text: handleError(error) }],
-        };
+        return textResponse(handleError(error));
       }
     }
   );

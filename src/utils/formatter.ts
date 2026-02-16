@@ -2,7 +2,7 @@
  * Formatter utilities for Markdown and JSON output
  */
 
-import { CHARACTER_LIMIT } from "../constants.js";
+import { CHARACTER_LIMIT, MAX_RELATED_FEATURES_DISPLAY } from "../constants.js";
 import type {
   BaselineFeatureResult,
   BrowserInfo,
@@ -156,13 +156,12 @@ export function formatBaselineMarkdown(result: BaselineFeatureResult): string {
   if (result.compat_features.length > 0) {
     lines.push("## Related BCD Features");
     lines.push("");
-    const maxShow = 10;
-    const shown = result.compat_features.slice(0, maxShow);
+    const shown = result.compat_features.slice(0, MAX_RELATED_FEATURES_DISPLAY);
     for (const f of shown) {
       lines.push(`- \`${f}\``);
     }
-    if (result.compat_features.length > maxShow) {
-      lines.push(`- ... and ${result.compat_features.length - maxShow} more`);
+    if (result.compat_features.length > MAX_RELATED_FEATURES_DISPLAY) {
+      lines.push(`- ... and ${result.compat_features.length - MAX_RELATED_FEATURES_DISPLAY} more`);
     }
     lines.push("");
   }
