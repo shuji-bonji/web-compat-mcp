@@ -8,9 +8,11 @@
 
 Answers the question: _"Does this actually work in browsers?"_
 
-Uses [MDN Browser Compat Data (BCD)](https://github.com/mdn/browser-compat-data) (15,000+ features) and [W3C WebDX web-features](https://github.com/nicolo-ribaudo/tc39-proposal-scope-functions) (1,000+ features with Baseline status) to provide real-world browser implementation status.
+Uses [MDN Browser Compat Data (BCD)](https://github.com/mdn/browser-compat-data) (15,000+ features) and [W3C WebDX web-features](https://github.com/web-platform-dx/web-features) (1,000+ features with Baseline status) to provide real-world browser implementation status.
 
 > **Fully offline** — all data is bundled via npm packages. No API calls, zero latency.
+
+🇯🇵 [日本語版 README はこちら](./README.ja.md)
 
 ## Architecture
 
@@ -30,7 +32,7 @@ Uses [MDN Browser Compat Data (BCD)](https://github.com/mdn/browser-compat-data)
 │          ┌────────▼────────┐                │
 │          │   7 MCP Tools   │                │
 │          └────────┬────────┘                │
-│                   │ stdio / Streamable HTTP │
+│                   │ stdio                   │
 └───────────────────┼─────────────────────────┘
                     │
             MCP Client (Claude, etc.)
@@ -41,25 +43,26 @@ Uses [MDN Browser Compat Data (BCD)](https://github.com/mdn/browser-compat-data)
 | Tool | Description |
 |------|-------------|
 | `compat_check` | Check browser compatibility for a single feature (BCD dot notation) |
-| `compat_search` | Search BCD features by keyword |
+| `compat_search` | Search 15,000+ BCD features by keyword |
 | `compat_get_baseline` | Get Baseline status for a web feature (web-features kebab-case) |
 | `compat_list_baseline` | List features filtered by Baseline status |
-| `compat_compare` | Compare browser compatibility across 2-5 features side by side |
+| `compat_compare` | Compare browser compatibility across 2–5 features side by side |
 | `compat_list_browsers` | List all tracked browsers with versions |
 | `compat_check_support` | Find features added in a specific browser version |
 
-## Installation
-
-### npm (global)
-
-```bash
-npm install -g @shuji-bonji/web-compat-mcp
-```
+## Quick Start
 
 ### npx (no install)
 
 ```bash
 npx @shuji-bonji/web-compat-mcp
+```
+
+### npm (global)
+
+```bash
+npm install -g @shuji-bonji/web-compat-mcp
+web-compat-mcp
 ```
 
 ## MCP Client Configuration
@@ -110,6 +113,18 @@ Add to `.vscode/mcp.json`:
 → compat_check feature: "api.PushManager"
 ```
 
+Returns version support across browsers, Baseline status, and links to MDN/spec documentation.
+
+### Search features
+
+> "Find CSS grid features"
+
+```
+→ compat_search query: "grid" category: "css"
+```
+
+Returns matching feature IDs with standard/experimental/deprecated flags.
+
 ### Compare features
 
 > "Compare fetch vs XMLHttpRequest"
@@ -117,6 +132,8 @@ Add to `.vscode/mcp.json`:
 ```
 → compat_compare features: ["api.fetch", "api.XMLHttpRequest"]
 ```
+
+Returns side-by-side comparison table with version support and Baseline status.
 
 ### Check Baseline status
 
@@ -126,6 +143,8 @@ Add to `.vscode/mcp.json`:
 → compat_get_baseline feature: "container-queries"
 ```
 
+Returns Baseline level (Widely Available / Newly Available / Not Baseline), browser support, and related BCD features.
+
 ### Find features by browser version
 
 > "What CSS features were added in Chrome 120?"
@@ -133,6 +152,15 @@ Add to `.vscode/mcp.json`:
 ```
 → compat_check_support browser: "chrome" version: "120" category: "css"
 ```
+
+Returns features added in the specified browser version.
+
+## Output Formats
+
+All tools support `response_format` parameter:
+
+- `"markdown"` (default) — Human-readable tables and formatted text
+- `"json"` — Structured data with `structuredContent` for programmatic use
 
 ## Complementary MCP Servers
 
@@ -149,7 +177,7 @@ This server is designed to work alongside other MCP servers:
 | Source | Package | Features | Update Frequency |
 |--------|---------|----------|-----------------|
 | [MDN BCD](https://github.com/mdn/browser-compat-data) | `@mdn/browser-compat-data` | 15,000+ | Weekly |
-| [web-features](https://github.com/nicolo-ribaudo/tc39-proposal-scope-functions) | `web-features` | 1,000+ | Monthly |
+| [web-features](https://github.com/web-platform-dx/web-features) | `web-features` | 1,000+ | Monthly |
 
 ## Development
 
@@ -161,10 +189,10 @@ npm install
 npm run build
 
 # Run tests
-npm test              # Unit tests
-npm run test:e2e      # E2E tests (JSON-RPC)
+npm test              # Unit tests (66 tests)
+npm run test:e2e      # E2E tests via JSON-RPC (10 tests)
 
-# Lint & format
+# Lint & format (Biome 2.x)
 npm run lint          # Check
 npm run lint:fix      # Auto-fix
 npm run format        # Format
@@ -175,4 +203,4 @@ npm run typecheck
 
 ## License
 
-MIT
+MIT — see [LICENSE](./LICENSE)

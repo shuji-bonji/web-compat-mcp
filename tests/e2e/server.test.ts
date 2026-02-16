@@ -8,6 +8,9 @@ import { resolve } from "node:path";
 
 const SERVER_PATH = resolve(import.meta.dirname, "../../dist/index.js");
 
+/** Per-request timeout (CI can be slow loading large BCD JSON) */
+const REQUEST_TIMEOUT_MS = 30_000;
+
 /** Send a JSON-RPC request and collect all JSON responses */
 function createClient() {
   let proc: ChildProcess;
@@ -50,7 +53,7 @@ function createClient() {
         setTimeout(() => {
           responses.delete(id);
           reject(new Error(`Timeout waiting for response id=${id}`));
-        }, 15000);
+        }, REQUEST_TIMEOUT_MS);
       });
     },
 
