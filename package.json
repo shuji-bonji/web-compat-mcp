@@ -1,6 +1,6 @@
 {
 	"name": "@shuji-bonji/web-compat-mcp",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "MCP server providing browser compatibility data from MDN BCD and W3C WebDX web-features for the entire Web Platform",
 	"type": "module",
 	"main": "dist/index.js",
