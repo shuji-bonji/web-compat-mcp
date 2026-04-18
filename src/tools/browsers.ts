@@ -104,7 +104,13 @@ Examples:
         }
 
         const output = paginatedOutput(
-          { browser: params.browser, version: params.version, features: results.features },
+          {
+            browser: params.browser,
+            version: params.version,
+            features: results.features,
+            used_version: results.used_version,
+            fallback_applied: results.fallback_applied,
+          },
           results.features,
           results.total,
           params.offset,

@@ -50,6 +50,18 @@ Uses [MDN Browser Compat Data (BCD)](https://github.com/mdn/browser-compat-data)
 | `compat_list_browsers` | List all tracked browsers with versions                             |
 | `compat_check_support` | Find features added in a specific browser version                   |
 
+### Identifier conventions
+
+The two data sources use different identifier schemes, and each tool expects a specific one:
+
+| Tool                                             | Scheme                                                 | Example                                   |
+| ------------------------------------------------ | ------------------------------------------------------ | ----------------------------------------- |
+| `compat_check`, `compat_compare`, `compat_search` | **BCD dot notation** — fine-grained, often camelCase   | `api.PushManager`, `css.properties.grid`  |
+| `compat_get_baseline`, `compat_list_baseline`    | **web-features kebab-case** — coarse, feature-group    | `push`, `container-queries`               |
+| `compat_check_support`                           | Browser id + version string                            | `safari` + `17`                           |
+
+BCD is fine-grained (`api.PushManager`, `api.PushEvent`, `api.PushSubscription` are separate entries) while web-features groups related specs into a single feature (`push` covers all three). When unsure of the exact identifier, run `compat_search` first. Input normalization handles kebab-case queries (`view-transition` → `viewtransition`) and trailing `.0` versions (`17.0` → `17`) automatically.
+
 ## Quick Start
 
 ### npx (no install)
@@ -154,6 +166,23 @@ Returns Baseline level (Widely Available / Newly Available / Not Baseline), brow
 ```
 
 Returns features added in the specified browser version.
+
+### Workflow: combining multiple tools
+
+> "I want to use Push API in my PWA — is it realistic today?"
+
+```
+Step 1 → compat_check        feature: "api.PushManager"
+         # Per-API browser versions (Chrome 42+, Safari 16+, Firefox 44+)
+
+Step 2 → compat_get_baseline  feature: "push"
+         # Feature-group view: Newly Available since 2023-03-27
+
+Step 3 → compat_compare       features: ["api.PushManager", "api.Notification"]
+         # Side-by-side when your PWA depends on both
+```
+
+Chained with a spec-oriented server such as **W3C MCP** or **RFCXML MCP**, the LLM can answer both _"what does the spec require?"_ and _"what actually works in browsers today?"_ in a single conversation.
 
 ## Output Formats
 

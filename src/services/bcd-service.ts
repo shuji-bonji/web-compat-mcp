@@ -14,6 +14,7 @@ import type {
   FeatureCompatResult,
   SearchResultItem,
 } from "../types.js";
+import { normalizeBrowserVersion, normalizeSearchQuery } from "../utils/normalize.js";
 import { findWebFeatureByBcdId, getBaselineStatus } from "./features-service.js";
 
 type BcdCategory = (typeof BCD_CATEGORIES)[number];
@@ -175,10 +176,22 @@ function collectFeaturePaths(
   }
 }
 
+/** Search result shape with fallback metadata */
+export interface SearchFeaturesResult {
+  total: number;
+  features: SearchResultItem[];
+  has_more: boolean;
+  /** The query that actually produced the matches (may differ from input if fallback was used) */
+  used_query: string;
+  /** True when a normalized candidate matched after the original returned zero */
+  fallback_applied: boolean;
+}
+
 /**
- * Search BCD features by keyword
+ * Run a single raw substring search against the BCD path index.
+ * Internal — used by searchFeatures with the fallback loop.
  */
-export function searchFeatures(
+function searchFeaturesRaw(
   query: string,
   category?: string,
   limit: number = 20,
@@ -211,6 +224,42 @@ export function searchFeatures(
     total,
     features,
     has_more: total > offset + limit,
+  };
+}
+
+/**
+ * Search BCD features by keyword.
+ *
+ * Tries the original query first, then normalized fallback candidates
+ * (e.g., "view-transition" → "viewtransition") so kebab-case / snake_case
+ * input can match BCD's camelCase identifiers.
+ */
+export function searchFeatures(
+  query: string,
+  category?: string,
+  limit: number = 20,
+  offset: number = 0
+): SearchFeaturesResult {
+  const candidates = normalizeSearchQuery(query);
+
+  for (let i = 0; i < candidates.length; i++) {
+    const current = candidates[i];
+    const raw = searchFeaturesRaw(current, category, limit, offset);
+    if (raw.total > 0) {
+      return {
+        ...raw,
+        used_query: current,
+        fallback_applied: i > 0,
+      };
+    }
+  }
+
+  return {
+    total: 0,
+    features: [],
+    has_more: false,
+    used_query: query,
+    fallback_applied: false,
   };
 }
 
@@ -263,11 +312,22 @@ export function getCategories(): string[] {
   return [...BCD_CATEGORIES];
 }
 
+/** Browser-version lookup result with fallback metadata */
+export interface BrowserVersionResult {
+  total: number;
+  features: Array<{ id: string; version_added: string }>;
+  has_more: boolean;
+  /** The version string that actually produced the matches (may differ from input) */
+  used_version: string;
+  /** True when a normalized candidate matched after the original returned zero */
+  fallback_applied: boolean;
+}
+
 /**
- * Find features added in a specific browser version.
- * Returns features where version_added matches the given version.
+ * Run a single raw version-match lookup.
+ * Internal — used by findFeaturesByBrowserVersion with the fallback loop.
  */
-export function findFeaturesByBrowserVersion(
+function findFeaturesByBrowserVersionRaw(
   browser: string,
   version: string,
   category?: string,
@@ -307,5 +367,41 @@ export function findFeaturesByBrowserVersion(
     total,
     features: sliced,
     has_more: total > offset + limit,
+  };
+}
+
+/**
+ * Find features added in a specific browser version.
+ *
+ * Tries the original version first, then normalized fallback candidates
+ * (e.g., "17.0" → "17") since BCD stores version_added as bare strings.
+ */
+export function findFeaturesByBrowserVersion(
+  browser: string,
+  version: string,
+  category?: string,
+  limit: number = 20,
+  offset: number = 0
+): BrowserVersionResult {
+  const candidates = normalizeBrowserVersion(version);
+
+  for (let i = 0; i < candidates.length; i++) {
+    const current = candidates[i];
+    const raw = findFeaturesByBrowserVersionRaw(browser, current, category, limit, offset);
+    if (raw.total > 0) {
+      return {
+        ...raw,
+        used_version: current,
+        fallback_applied: i > 0,
+      };
+    }
+  }
+
+  return {
+    total: 0,
+    features: [],
+    has_more: false,
+    used_version: version,
+    fallback_applied: false,
   };
 }

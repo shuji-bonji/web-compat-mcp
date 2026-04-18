@@ -104,6 +104,49 @@ describe("bcd-service", () => {
       expect(result.total).toBe(0);
       expect(result.features).toHaveLength(0);
     });
+
+    it("should report used_query and fallback_applied=false when the original query matches", () => {
+      const result = searchFeatures("fetch");
+      expect(result.total).toBeGreaterThan(0);
+      expect(result.used_query).toBe("fetch");
+      expect(result.fallback_applied).toBe(false);
+    });
+
+    it("should fall back to a hyphen-stripped query when the original returns 0 (kebab-case)", () => {
+      // Within the `api` category, BCD uses camelCase only (no kebab-case paths),
+      // so "view-transition" literally matches nothing; the stripped fallback
+      // "viewtransition" should match CSSViewTransitionRule, startViewTransition, etc.
+      const result = searchFeatures("view-transition", "api");
+      expect(result.total).toBeGreaterThan(0);
+      expect(result.fallback_applied).toBe(true);
+      expect(result.used_query).toBe("viewtransition");
+      // Sanity: every matched id must be in the api namespace
+      for (const f of result.features) {
+        expect(f.id).toMatch(/^api\./);
+      }
+    });
+
+    it("should also fall back for kebab-case api names like 'push-manager'", () => {
+      const result = searchFeatures("push-manager", "api");
+      expect(result.total).toBeGreaterThan(0);
+      expect(result.fallback_applied).toBe(true);
+      expect(result.used_query).toBe("pushmanager");
+    });
+
+    it("should fall back to an underscore-stripped query (snake_case)", () => {
+      const result = searchFeatures("service_worker");
+      // If "service_worker" literally matches, no fallback; otherwise fallback kicks in.
+      if (result.total > 0) {
+        // Either path yields results — used_query must be one of the candidates.
+        expect(["service_worker", "serviceworker"]).toContain(result.used_query);
+      }
+    });
+
+    it("should not apply fallback when there are no separators to strip", () => {
+      const result = searchFeatures("zzzzzzzznonexistent12345");
+      expect(result.fallback_applied).toBe(false);
+      expect(result.used_query).toBe("zzzzzzzznonexistent12345");
+    });
   });
 
   describe("getBrowsers", () => {
@@ -151,6 +194,38 @@ describe("bcd-service", () => {
       const result = findFeaturesByBrowserVersion("chrome", "999999");
       expect(result.total).toBe(0);
       expect(result.features).toHaveLength(0);
+    });
+
+    it("should report used_version and fallback_applied=false when the original version matches", () => {
+      const result = findFeaturesByBrowserVersion("chrome", "120", "css");
+      expect(result.total).toBeGreaterThan(0);
+      expect(result.used_version).toBe("120");
+      expect(result.fallback_applied).toBe(false);
+    });
+
+    it("should fall back to the stripped version when '120.0' returns 0", () => {
+      // BCD stores version_added as bare "120" (not "120.0"), so "120.0" will miss
+      // and the normalizer should retry with "120".
+      const result = findFeaturesByBrowserVersion("chrome", "120.0", "css");
+      expect(result.total).toBeGreaterThan(0);
+      expect(result.used_version).toBe("120");
+      expect(result.fallback_applied).toBe(true);
+      for (const f of result.features) {
+        expect(f.version_added).toBe("120");
+      }
+    });
+
+    it("should yield the same results for '120' and '120.0'", () => {
+      const bare = findFeaturesByBrowserVersion("chrome", "120", "css");
+      const dotted = findFeaturesByBrowserVersion("chrome", "120.0", "css");
+      expect(dotted.total).toBe(bare.total);
+      expect(dotted.features.map((f) => f.id)).toEqual(bare.features.map((f) => f.id));
+    });
+
+    it("should not apply fallback when the version has no trailing .0", () => {
+      const result = findFeaturesByBrowserVersion("chrome", "999999");
+      expect(result.fallback_applied).toBe(false);
+      expect(result.used_version).toBe("999999");
     });
   });
 

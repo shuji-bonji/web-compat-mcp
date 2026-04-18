@@ -59,7 +59,11 @@ Examples:
         }
 
         const output = paginatedOutput(
-          { features: results.features },
+          {
+            features: results.features,
+            used_query: results.used_query,
+            fallback_applied: results.fallback_applied,
+          },
           results.features,
           results.total,
           params.offset,

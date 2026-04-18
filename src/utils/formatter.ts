@@ -90,13 +90,28 @@ export function formatCompatCheckMarkdown(result: FeatureCompatResult): string {
  * Format search results as Markdown
  */
 export function formatSearchMarkdown(
-  results: { total: number; features: SearchResultItem[]; has_more: boolean },
+  results: {
+    total: number;
+    features: SearchResultItem[];
+    has_more: boolean;
+    used_query?: string;
+    fallback_applied?: boolean;
+  },
   query: string
 ): string {
   const lines: string[] = [];
 
   lines.push(`# Search Results: "${query}"`);
   lines.push("");
+
+  // Notice when the original query returned 0 matches and a normalized fallback was used
+  if (results.fallback_applied && results.used_query && results.used_query !== query) {
+    lines.push(
+      `> ℹ️ No matches for \`${query}\`. Showing results for normalized query \`${results.used_query}\` (separators removed).`
+    );
+    lines.push("");
+  }
+
   lines.push(`Found **${results.total}** features (showing ${results.features.length})`);
   lines.push("");
 
@@ -316,12 +331,23 @@ export function formatCheckSupportMarkdown(
     total: number;
     features: Array<{ id: string; version_added: string }>;
     has_more: boolean;
+    used_version?: string;
+    fallback_applied?: boolean;
   }
 ): string {
   const lines: string[] = [];
 
   lines.push(`# Features added in ${browser} ${version}`);
   lines.push("");
+
+  // Notice when the original version returned 0 matches and a normalized fallback was used
+  if (results.fallback_applied && results.used_version && results.used_version !== version) {
+    lines.push(
+      `> ℹ️ No features match version \`${version}\`. Showing results for normalized version \`${results.used_version}\` (trailing \`.0\` stripped).`
+    );
+    lines.push("");
+  }
+
   lines.push(`Found **${results.total}** features (showing ${results.features.length})`);
   lines.push("");
 
