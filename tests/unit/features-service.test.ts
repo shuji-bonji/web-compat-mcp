@@ -5,6 +5,7 @@ import {
   searchWebFeatures,
   findWebFeatureByBcdId,
   getGroups,
+  resolveFeatureRedirect,
 } from "../../src/services/features-service.js";
 
 describe("features-service", () => {
@@ -113,6 +114,70 @@ describe("features-service", () => {
       expect(groups.length).toBeGreaterThan(0);
       expect(groups[0]).toHaveProperty("id");
       expect(groups[0]).toHaveProperty("name");
+    });
+  });
+
+  describe("web-features 3.x entry kinds", () => {
+    it("should follow a moved ID to its target and record redirected_from", () => {
+      // "grid-lanes" was renamed to "masonry" in web-features 3.x
+      const redirect = resolveFeatureRedirect("grid-lanes");
+      expect(redirect?.kind).toBe("moved");
+      if (redirect?.kind !== "moved") return;
+
+      const result = getBaselineStatus("grid-lanes");
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe(redirect.redirect_target);
+      expect(result!.redirected_from).toBe("grid-lanes");
+      expect(result!.name).toBeDefined();
+    });
+
+    it("should return null for a split ID and expose its targets", () => {
+      // "single-color-gradients" was split into several IDs in web-features 3.x
+      const redirect = resolveFeatureRedirect("single-color-gradients");
+      expect(redirect?.kind).toBe("split");
+      if (redirect?.kind !== "split") return;
+
+      expect(redirect.redirect_targets.length).toBeGreaterThan(1);
+      expect(getBaselineStatus("single-color-gradients")).toBeNull();
+    });
+
+    it("should return null redirect for regular and unknown IDs", () => {
+      expect(resolveFeatureRedirect("fetch")).toBeNull();
+      expect(resolveFeatureRedirect("definitely-not-a-feature")).toBeNull();
+    });
+
+    it("should never list or search moved/split entries", () => {
+      const all = listByBaseline(undefined, undefined, 5000, 0);
+      const ids = all.features.map((f) => f.id);
+      expect(ids).not.toContain("grid-lanes");
+      expect(ids).not.toContain("single-color-gradients");
+      for (const f of all.features) expect(typeof f.name).toBe("string");
+    });
+
+    it("should expose groups as an array and keep group as its first entry", () => {
+      const result = getBaselineStatus("fetch");
+      expect(result).not.toBeNull();
+      expect(Array.isArray(result!.groups)).toBe(true);
+      expect(result!.groups.length).toBeGreaterThan(0);
+      expect(result!.group).toBe(result!.groups[0]);
+    });
+
+    it("should match group filter against every group of a multi-group feature", () => {
+      const all = listByBaseline(undefined, undefined, 5000, 0);
+      const multi = all.features.find((f) => f.groups.length > 1);
+      expect(multi).toBeDefined();
+      if (!multi) return;
+
+      const secondGroup = multi.groups[1];
+      const filtered = listByBaseline(undefined, secondGroup, 5000, 0);
+      expect(filtered.features.map((f) => f.id)).toContain(multi.id);
+    });
+
+    it("should surface discouraged metadata when present", () => {
+      const result = getBaselineStatus("accessor-methods");
+      expect(result).not.toBeNull();
+      expect(result!.discouraged).toBeDefined();
+      expect(result!.discouraged!.according_to.length).toBeGreaterThan(0);
     });
   });
 });

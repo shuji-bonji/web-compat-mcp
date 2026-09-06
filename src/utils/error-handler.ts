@@ -2,6 +2,8 @@
  * Error handling utilities
  */
 
+import type { WebFeatureRedirect } from "../types.js";
+
 export function handleError(error: unknown): string {
   if (error instanceof Error) {
     return `Error: ${error.message}`;
@@ -34,7 +36,25 @@ export function featureNotFoundError(featureId: string): string {
   ].join("\n");
 }
 
-export function webFeatureNotFoundError(featureId: string): string {
+export function webFeatureNotFoundError(
+  featureId: string,
+  redirect: WebFeatureRedirect | null = null
+): string {
+  if (redirect?.kind === "split") {
+    return [
+      `Error: Feature "${featureId}" was split in web-features and no longer has a single Baseline status.`,
+      "",
+      "Use one of its successor IDs instead:",
+      ...redirect.redirect_targets.map((t) => `  - "${t}"`),
+    ].join("\n");
+  }
+  if (redirect?.kind === "moved") {
+    return [
+      `Error: Feature "${featureId}" was renamed in web-features.`,
+      "",
+      `Use "${redirect.redirect_target}" instead.`,
+    ].join("\n");
+  }
   return [
     `Error: Feature "${featureId}" not found in web-features.`,
     "",
