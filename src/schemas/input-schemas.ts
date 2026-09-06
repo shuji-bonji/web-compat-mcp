@@ -16,7 +16,7 @@ import {
 
 /** Response format schema (shared) */
 const responseFormatSchema = z
-  .nativeEnum(ResponseFormat)
+  .enum(ResponseFormat)
   .default(ResponseFormat.MARKDOWN)
   .describe("Output format: 'markdown' for human-readable or 'json' for structured data");
 

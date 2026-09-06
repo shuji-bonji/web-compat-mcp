@@ -2,7 +2,7 @@
  * Search tools — compat_search
  */
 
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import { type CompatSearchInput, CompatSearchInputSchema } from "../schemas/input-schemas.js";
 import { searchFeatures } from "../services/bcd-service.js";
 import { handleError } from "../utils/error-handler.js";
@@ -32,7 +32,7 @@ Examples:
   - "Find Push API features" → query: "push", category: "api"
   - "Find CSS grid features" → query: "grid", category: "css"
   - "Find all service worker APIs" → query: "serviceworker", category: "api"`,
-      inputSchema: CompatSearchInputSchema.shape,
+      inputSchema: CompatSearchInputSchema,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,

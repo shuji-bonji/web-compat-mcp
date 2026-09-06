@@ -2,7 +2,7 @@
  * Baseline tools — compat_get_baseline, compat_list_baseline
  */
 
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import {
   type CompatGetBaselineInput,
   CompatGetBaselineInputSchema,
@@ -37,7 +37,7 @@ Examples:
   - "Is container queries Baseline?" → feature: "container-queries"
   - "Is the Push API widely available?" → feature: "push"
   - "Check View Transitions baseline" → feature: "view-transitions"`,
-      inputSchema: CompatGetBaselineInputSchema.shape,
+      inputSchema: CompatGetBaselineInputSchema,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -86,7 +86,7 @@ Examples:
   - "List all Widely Available features" → status: "high"
   - "What CSS features are Newly Available?" → status: "low", group: "css"
   - "What features aren't Baseline yet?" → status: "false"`,
-      inputSchema: CompatListBaselineInputSchema.shape,
+      inputSchema: CompatListBaselineInputSchema,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
