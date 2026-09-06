@@ -179,10 +179,15 @@ export function formatBaselineMarkdown(result: BaselineFeatureResult): string {
   // Browser support
   lines.push("## Browser Support");
   lines.push("");
-  lines.push("| Browser | Version |");
-  lines.push("|---------|---------|");
-  for (const [browser, version] of Object.entries(result.browser_support)) {
-    lines.push(`| ${browser} | ${version}+ |`);
+  const support = Object.entries(result.browser_support);
+  if (support.length === 0) {
+    lines.push("_No browser has shipped this feature yet (per web-features)._");
+  } else {
+    lines.push("| Browser | Version |");
+    lines.push("|---------|---------|");
+    for (const [browser, version] of support) {
+      lines.push(`| ${browser} | ${version}+ |`);
+    }
   }
   lines.push("");
 
