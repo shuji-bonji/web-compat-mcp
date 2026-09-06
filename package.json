@@ -53,16 +53,16 @@
     "url": "https://github.com/shuji-bonji/web-compat-mcp/issues"
   },
   "dependencies": {
-    "@mdn/browser-compat-data": "^6.0.0",
+    "@mdn/browser-compat-data": "^8.1.0",
     "@modelcontextprotocol/server": "^2.0.0",
-    "web-features": "^2.0.0",
+    "web-features": "^3.37.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.1",
-    "@types/node": "^22.10.0",
+    "@types/node": "^24.13.3",
     "tsx": "^4.19.2",
     "typescript": "^7.0.2",
-    "vitest": "^4.0.18"
+    "vitest": "^5.0.0"
   }
 }

@@ -145,6 +145,14 @@ export function formatBaselineMarkdown(result: BaselineFeatureResult): string {
   lines.push(`# ${result.name}`);
   lines.push("");
   lines.push(`**ID**: \`${result.id}\``);
+  if (result.redirected_from) {
+    lines.push(
+      `> ℹ️ \`${result.redirected_from}\` was renamed to \`${result.id}\` in web-features.`
+    );
+  }
+  if (result.groups.length > 0) {
+    lines.push(`**Group**: ${result.groups.map((g) => `\`${g}\``).join(", ")}`);
+  }
   lines.push(`**Baseline**: ${baselineEmoji(result.baseline.status)}`);
   if (result.baseline.low_date)
     lines.push(`**Newly Available since**: ${result.baseline.low_date}`);
@@ -154,6 +162,17 @@ export function formatBaselineMarkdown(result: BaselineFeatureResult): string {
 
   if (result.description) {
     lines.push(result.description);
+    lines.push("");
+  }
+
+  if (result.discouraged) {
+    const reason = result.discouraged.reason ? `: ${result.discouraged.reason}` : "";
+    lines.push(`> ⚠️ **Discouraged**${reason}`);
+    if (result.discouraged.alternatives?.length) {
+      lines.push(
+        `> Alternatives: ${result.discouraged.alternatives.map((a) => `\`${a}\``).join(", ")}`
+      );
+    }
     lines.push("");
   }
 

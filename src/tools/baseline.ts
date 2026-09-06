@@ -9,7 +9,11 @@ import {
   type CompatListBaselineInput,
   CompatListBaselineInputSchema,
 } from "../schemas/input-schemas.js";
-import { getBaselineStatus, listByBaseline } from "../services/features-service.js";
+import {
+  getBaselineStatus,
+  listByBaseline,
+  resolveFeatureRedirect,
+} from "../services/features-service.js";
 import { handleError, webFeatureNotFoundError } from "../utils/error-handler.js";
 import { formatBaselineListMarkdown, formatBaselineMarkdown } from "../utils/formatter.js";
 import { formatToolResponse, paginatedOutput, textResponse } from "../utils/tool-helpers.js";
@@ -50,7 +54,9 @@ Examples:
         const result = getBaselineStatus(params.feature);
 
         if (!result) {
-          return textResponse(webFeatureNotFoundError(params.feature));
+          return textResponse(
+            webFeatureNotFoundError(params.feature, resolveFeatureRedirect(params.feature))
+          );
         }
 
         return formatToolResponse(
