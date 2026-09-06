@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-09-06
+
+### Changed
+
+- **MCP SDK v2 へ移行**: `@modelcontextprotocol/sdk` (v1) を廃止し、`@modelcontextprotocol/server` ^2.0.0 に置き換え。import 先は `@modelcontextprotocol/server` / `@modelcontextprotocol/server/stdio`。`registerTool` の `inputSchema` には zod の raw shape (`Schema.shape`) ではなく `z.object()` のスキーマそのものを渡す形に変更 (7 ツール)。起動方式は従来どおり `server.connect(new StdioServerTransport())` で、`initialize` ハンドシェイク (2025 世代プロトコル) の挙動は変わらない。
+- **zod 4**: SDK v2 の要件 (zod >= 4.2.0) に合わせて `zod` を `^4.2.0` に更新。`z.nativeEnum()` を `z.enum()` に置き換え。`tools/list` が返す `inputSchema` は `$schema` が draft-07 から JSON Schema 2020-12 になる以外は同一。
+- **Node.js 22 以上を要件化**: `engines.node` を `>=22` に引き上げ (Node 20 は 2026-04-30 に EOL)。CI のテストマトリクスを Node 22 / 24 に変更。
+- **TypeScript 7**: `typescript` を `^7.0.2` (Go 製ネイティブ tsc) に更新。TS 7 で `types` の既定値が空になったため `tsconfig.json` に `"types": ["node"]` を追加。出力される JS は 5.9 と同一。
+
+### Migration notes
+
+- 利用者側 (`npx @shuji-bonji/web-compat-mcp`) に必要な作業はない。Node 20 以下の環境では起動できなくなる。
+
 ## [0.1.5] - 2026-07-14
 
 ### Added
