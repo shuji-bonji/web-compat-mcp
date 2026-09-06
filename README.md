@@ -64,6 +64,8 @@ BCD is fine-grained (`api.PushManager`, `api.PushEvent`, `api.PushSubscription` 
 
 ## Quick Start
 
+Requires Node.js 22 or later.
+
 ### npx (no install)
 
 ```bash
@@ -218,7 +220,7 @@ npm install
 npm run build
 
 # Run tests
-npm test              # Unit tests (66 tests)
+npm test              # Unit tests (87 tests)
 npm run test:e2e      # E2E tests via JSON-RPC (10 tests)
 
 # Lint & format (Biome 2.x)
@@ -226,7 +228,7 @@ npm run lint          # Check
 npm run lint:fix      # Auto-fix
 npm run format        # Format
 
-# Type check
+# Type check (TypeScript 7)
 npm run typecheck
 ```
 

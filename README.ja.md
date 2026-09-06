@@ -64,6 +64,8 @@ BCD は細粒度（`api.PushManager`, `api.PushEvent`, `api.PushSubscription` �
 
 ## クイックスタート
 
+Node.js 22 以降が必要です。
+
 ### npx（インストール不要）
 
 ```bash
@@ -218,7 +220,7 @@ npm install
 npm run build
 
 # テスト実行
-npm test              # ユニットテスト（66テスト）
+npm test              # ユニットテスト（87テスト）
 npm run test:e2e      # E2Eテスト（JSON-RPC経由、10テスト）
 
 # リント＆フォーマット（Biome 2.x）
@@ -226,7 +228,7 @@ npm run lint          # チェック
 npm run lint:fix      # 自動修正
 npm run format        # フォーマット
 
-# 型チェック
+# 型チェック（TypeScript 7）
 npm run typecheck
 ```
 
