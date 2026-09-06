@@ -69,7 +69,7 @@ Requires Node.js 22 or later.
 ### npx (no install)
 
 ```bash
-npx @shuji-bonji/web-compat-mcp
+npx -y @shuji-bonji/web-compat-mcp@latest
 ```
 
 ### npm (global)
@@ -90,7 +90,7 @@ Add to `claude_desktop_config.json`:
 	"mcpServers": {
 		"web-compat": {
 			"command": "npx",
-			"args": ["-y", "@shuji-bonji/web-compat-mcp"]
+			"args": ["-y", "@shuji-bonji/web-compat-mcp@latest"]
 		}
 	}
 }
@@ -99,7 +99,7 @@ Add to `claude_desktop_config.json`:
 ### Claude Code
 
 ```bash
-claude mcp add web-compat -- npx -y @shuji-bonji/web-compat-mcp
+claude mcp add web-compat -- npx -y @shuji-bonji/web-compat-mcp@latest
 ```
 
 ### VS Code (Copilot / Continue)
@@ -111,7 +111,7 @@ Add to `.vscode/mcp.json`:
 	"servers": {
 		"web-compat": {
 			"command": "npx",
-			"args": ["-y", "@shuji-bonji/web-compat-mcp"]
+			"args": ["-y", "@shuji-bonji/web-compat-mcp@latest"]
 		}
 	}
 }
@@ -220,7 +220,7 @@ npm install
 npm run build
 
 # Run tests
-npm test              # Unit tests (87 tests)
+npm test              # Unit tests (94 tests)
 npm run test:e2e      # E2E tests via JSON-RPC (10 tests)
 
 # Lint & format (Biome 2.x)

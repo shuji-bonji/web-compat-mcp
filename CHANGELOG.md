@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-09-06
+
+### Changed
+
+- **データパッケージを更新**: `@mdn/browser-compat-data` 6.1 → 8.1（Chrome 152 / Safari 26.6 / Firefox 142 まで。`bun` が server 系ブラウザとして追加）、`web-features` 2.49 → 3.37。
+- **web-features 3.x の `kind` に対応**: `kind: "moved"` / `kind: "split"` のリダイレクトエントリ（`name` / `status` を持たない）を一覧・検索から除外。`compat_get_baseline` に `moved` の旧 ID を渡すと新 ID の結果を返し `redirected_from` を付ける。`split` の旧 ID は後継 ID の一覧をエラーメッセージで案内する。
+- **`group` が配列になった変更に追従**: `compat_list_baseline` の `group` フィルタは、複数グループに属する機能のどのグループでも一致するようにした（従来は 3.x のデータでは一致しなかった）。
+- **起動方式を `serveStdio(buildServer)` に変更**: 2025 世代の `initialize` と 2026-07-28 版の `server/discover` の両方を同じサーバー定義で受け付ける。従来のクライアントの動作は変わらない。`tools/list` には 2026 版クライアント向けのキャッシュヒント（`ttlMs: 86400000`, `cacheScope: "public"`）を付ける。
+
+### Added
+
+- **`instructions`**: `initialize` / `server/discover` の応答で、このサーバーの射程（データ参照であって判定器ではない、識別子の形式、"not found" の意味、仕様本文は w3c-mcp / rfcxml-mcp へ）をクライアントに伝える。
+- `src/server.ts` — `buildServer()` と `INSTRUCTIONS` を `index.ts` から分離。
+- `BaselineFeatureResult` に `groups`（全グループ）、`discouraged`（web-features の非推奨情報）、`redirected_from` を追加。`group` は先頭グループとして残す。
+- `resolveFeatureRedirect()` と、web-features 3.x の各 kind に対するユニットテスト 7 件。
+
+### Build
+
+- `vitest` 4 → 5、`@types/node` 22 → 24。
+- README の起動例を `npx -y @shuji-bonji/web-compat-mcp@latest` に統一（タグなし指定は `npx` のキャッシュが更新されない）。`.gitignore` に Claude Desktop のローカルファイルを追加。
+
 ## [0.2.0] - 2026-09-06
 
 ### Changed
