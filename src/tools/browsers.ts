@@ -2,7 +2,7 @@
  * Browser tools — compat_list_browsers, compat_check_support
  */
 
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import {
   type CompatCheckSupportInput,
   CompatCheckSupportInputSchema,
@@ -31,7 +31,7 @@ Returns:
 Examples:
   - "What browsers are tracked?" → no params needed
   - "List all browser versions" → no params needed`,
-      inputSchema: CompatListBrowsersInputSchema.shape,
+      inputSchema: CompatListBrowsersInputSchema,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -77,7 +77,7 @@ Examples:
   - "What was added in Safari 17.0?" → browser: "safari", version: "17.0"
   - "New CSS features in Chrome 120" → browser: "chrome", version: "120", category: "css"
   - "Firefox 121 API additions" → browser: "firefox", version: "121", category: "api"`,
-      inputSchema: CompatCheckSupportInputSchema.shape,
+      inputSchema: CompatCheckSupportInputSchema,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,

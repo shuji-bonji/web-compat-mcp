@@ -13,8 +13,8 @@
  */
 
 import { createRequire } from "node:module";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { McpServer } from "@modelcontextprotocol/server";
+import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import { registerBaselineTools } from "./tools/baseline.js";
 import { registerBrowserTools } from "./tools/browsers.js";
 import { registerCompatTools } from "./tools/compat.js";

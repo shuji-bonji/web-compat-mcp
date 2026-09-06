@@ -2,7 +2,7 @@
  * BCD Compatibility tools — compat_check, compat_compare
  */
 
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import {
   type CompatCheckInput,
   CompatCheckInputSchema,
@@ -36,7 +36,7 @@ Examples:
   - "Is Push API supported in Safari?" → feature: "api.PushManager"
   - "Can I use CSS grid?" → feature: "css.properties.grid"
   - "Is Array.at() widely available?" → feature: "javascript.builtins.Array.at"`,
-      inputSchema: CompatCheckInputSchema.shape,
+      inputSchema: CompatCheckInputSchema,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -86,7 +86,7 @@ Examples:
   - Compare fetch vs XMLHttpRequest → features: ["api.fetch", "api.XMLHttpRequest"]
   - Compare CSS layout methods → features: ["css.properties.grid", "css.properties.flex"]
   - Compare storage APIs → features: ["api.localStorage", "api.sessionStorage", "api.IndexedDB"]`,
-      inputSchema: CompatCompareInputSchema.shape,
+      inputSchema: CompatCompareInputSchema,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
