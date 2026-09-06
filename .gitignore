@@ -4,3 +4,7 @@ dist/
 .env
 .DS_Store
 coverage/
+
+# Claude Desktop / Claude Code local files
+.claude/settings.local.json
+Claude outputs/

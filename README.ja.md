@@ -69,7 +69,7 @@ Node.js 22 以降が必要です。
 ### npx（インストール不要）
 
 ```bash
-npx @shuji-bonji/web-compat-mcp
+npx -y @shuji-bonji/web-compat-mcp@latest
 ```
 
 ### npm（グローバルインストール）
@@ -90,7 +90,7 @@ web-compat-mcp
 	"mcpServers": {
 		"web-compat": {
 			"command": "npx",
-			"args": ["-y", "@shuji-bonji/web-compat-mcp"]
+			"args": ["-y", "@shuji-bonji/web-compat-mcp@latest"]
 		}
 	}
 }
@@ -99,7 +99,7 @@ web-compat-mcp
 ### Claude Code
 
 ```bash
-claude mcp add web-compat -- npx -y @shuji-bonji/web-compat-mcp
+claude mcp add web-compat -- npx -y @shuji-bonji/web-compat-mcp@latest
 ```
 
 ### VS Code (Copilot / Continue)
@@ -111,7 +111,7 @@ claude mcp add web-compat -- npx -y @shuji-bonji/web-compat-mcp
 	"servers": {
 		"web-compat": {
 			"command": "npx",
-			"args": ["-y", "@shuji-bonji/web-compat-mcp"]
+			"args": ["-y", "@shuji-bonji/web-compat-mcp@latest"]
 		}
 	}
 }
@@ -220,7 +220,7 @@ npm install
 npm run build
 
 # テスト実行
-npm test              # ユニットテスト（87テスト）
+npm test              # ユニットテスト（94テスト）
 npm run test:e2e      # E2Eテスト（JSON-RPC経由、10テスト）
 
 # リント＆フォーマット（Biome 2.x）
